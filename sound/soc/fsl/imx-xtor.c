@@ -85,6 +85,11 @@ static int imx_xtor_hw_params(struct snd_pcm_substream *substream,
 	unsigned int ms_fmt = 0;
 	int ret, dir;
 
+#define KUK_FORCE_USE_DAIFMT_MSB    1
+#if KUK_FORCE_USE_DAIFMT_MSB
+	fmt = SND_SOC_DAIFMT_MSB | SND_SOC_DAIFMT_NB_NF | SND_SOC_DAIFMT_CBM_CFM;
+	dir = SND_SOC_CLOCK_OUT;
+#else
 	if(tx) {
 		if(data->tx_codec_slave)
 			ms_fmt = SND_SOC_DAIFMT_CBS_CFS;
@@ -99,6 +104,7 @@ static int imx_xtor_hw_params(struct snd_pcm_substream *substream,
 
 	fmt |= ms_fmt;
 	dir = (ms_fmt == SND_SOC_DAIFMT_CBS_CFS) ? SND_SOC_CLOCK_OUT : SND_SOC_CLOCK_IN;
+#endif
 
 	/* set cpu DAI configuration */
 	ret = snd_soc_dai_set_fmt(rtd->cpu_dai, fmt);

@@ -30,6 +30,10 @@
 #define POWER_SUPPLY_PROP_CONSTANT_CHARGE_CURRENT_MAX_VALUE 500000
 #define POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE_MAX_VALUE 5000000
 
+#ifdef CONFIG_BATTERY_DUMMY_OFFLINE
+#warning "CONFIG_BATTERY_DUMMY_OFFLINE Android might Suspend...."
+#endif
+
 static enum power_supply_property dummy_battery_props[] = {
     POWER_SUPPLY_PROP_STATUS,
     POWER_SUPPLY_PROP_HEALTH,
@@ -58,7 +62,12 @@ static int dummy_usb_get_property(struct power_supply *psy,
     int ret = 0;
     switch (psp) {
         case POWER_SUPPLY_PROP_ONLINE:
-            val->intval = 1;
+#ifdef CONFIG_BATTERY_DUMMY_OFFLINE	  
+            val->intval = 0;
+#else
+            val->intval = 1;	    
+#endif
+
             break;
         default:
             ret = -EINVAL;
@@ -74,7 +83,11 @@ static int dummy_battery_get_property(struct power_supply *psy,
     int ret = 0;
     switch (psp) {
         case POWER_SUPPLY_PROP_STATUS:
-            val->intval = POWER_SUPPLY_STATUS_CHARGING;
+#ifdef CONFIG_BATTERY_DUMMY_OFFLINE
+    	    val->intval = POWER_SUPPLY_STATUS_DISCHARGING;
+#else
+	        val->intval = POWER_SUPPLY_STATUS_CHARGING;
+#endif	
             break;
         case POWER_SUPPLY_PROP_HEALTH:
             val->intval = POWER_SUPPLY_HEALTH_GOOD;
@@ -113,7 +126,11 @@ static int dummy_battery_get_property(struct power_supply *psy,
             val->intval = POWER_SUPPLY_PROP_CONSTANT_CHARGE_VOLTAGE_MAX_VALUE;
             break;
         case POWER_SUPPLY_PROP_ONLINE:
-            val->intval = true;
+#ifdef CONFIG_BATTERY_DUMMY_OFFLINE	  
+            val->intval = false; // true;
+#else
+	        val->intval = true;	  
+#endif
             break;
         default:
             ret = -EINVAL;
