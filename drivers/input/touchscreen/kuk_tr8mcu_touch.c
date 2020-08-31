@@ -136,8 +136,8 @@ struct kuk_tr8mcu_ts_data {
 	u8 threshold;
 	u8 settle;
 	u8 average;
-
-	u8 reg_config1;    
+        u8 disable;
+	u8 reg_config1;
 
 	char name[KUK_NAME_LEN];
 
@@ -710,7 +710,8 @@ static int kuk_tr8mcu_i2c_ts_probe_dt(struct device *dev,
 	 * irq is associated via 'interrupts' property in DT
 	 */
 	tsdata->reset_pin = of_get_named_gpio(np, "reset-gpios", 0);
-
+	tsdata->disable   = 0;
+	
 	prop = of_get_property(np,    "swapxy", NULL);
 	if (prop && (strcmp(prop,     "true")==0))		tsdata->swapxy |= KUK_SWAPXY;	  
 
@@ -746,6 +747,8 @@ static int kuk_tr8mcu_i2c_ts_probe_dt(struct device *dev,
 		tsdata->settle = (u8)val;
 	if ( of_property_read_u32(np, "average"	, &val	) == 0)
 		tsdata->average = (u8)val;
+	if ( of_property_read_u32(np,"touchdisable",&val) == 0)
+		tsdata->disable = (u8)val;
 
 	return 0;
 }
@@ -1081,17 +1084,21 @@ static int kuk_tr8mcu_ts_probe(struct i2c_client *client,
 	input_set_drvdata(input, tsdata);
 	i2c_set_clientdata(client, tsdata);
 
-	kuk_tr8mcu_ts_write16(tsdata->client , TOUCH_CONFIG, tsdata->threshold | (tsdata->enable_touch?0x80:0x00));	// Enable Touch!
+	if(  tsdata->disable == 0 )
+	{	    
+
+	  kuk_tr8mcu_ts_write16(tsdata->client , TOUCH_CONFIG, tsdata->threshold | 0x80);	// Enable Touch!
 	
-	error = devm_request_threaded_irq(&client->dev, client->irq, NULL,
+	  error = devm_request_threaded_irq(&client->dev, client->irq, NULL,
 					kuk_tr8mcu_ts_isr,
 					IRQF_TRIGGER_FALLING | IRQF_ONESHOT,
 					client->name, tsdata);
-	if (error) {
-		dev_err(&client->dev, "Unable to request touchscreen IRQ.\n");
-		return error;
+	  if (error) {
+	    dev_err(&client->dev, "Unable to request touchscreen IRQ.\n");
+	    return error;
+	  }
 	}
-
+	
 	error = sysfs_create_group(&client->dev.kobj, &kuk_tr8mcu_attr_group);
 	if (error)
 		return error;
