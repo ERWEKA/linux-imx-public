@@ -14,8 +14,6 @@ Defines:
 
 */
 
-#define TOUCH_GPIO  45
-
 &iomuxc {
 
 	pinctrl-names = "default";

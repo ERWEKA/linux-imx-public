@@ -5,25 +5,28 @@
 
 /*
 Defines:
-    TOUCH_GPIO      Which SODIMM-Pin to use ( 45: pConXS, iPAN5; 55: i-PANT7, i-PAN T10)
+Defines:
+    TOUCH_USE_INT2  Set if alternate touch-interrupt should be used.
 
+    TOUCH_INT      Defined in xxx_pinfunc.h. (SODIMM-pin: 45: pConXS)
+    TOUCH_INT2     Defined in xxx_pinfunc.h. (SODIMM-pin: 55: i-PANT7, i-PAN T10)
+    TOUCH_RESET    Defined in xxx_pinfunc.h. (SODIMM-pin: 75)
 */
 
 &iomuxc {
 	pinctrl_captouch: captouchgrp {
 		fsl,pins = <
-					 SPIN75_GPIO		PAD_GPIO /* WAKE */
-#if (TOUCH_GPIO==45)
-					 SPIN45_GPIO		PAD_GPIO /* IRQ */
-#endif
-#if (TOUCH_GPIO==55)
-					 SPIN55_GPIO		PAD_GPIO /* IRQ */
+					 TOUCH_RESET		PAD_GPIO /* WAKE */
+#if defined(TOUCH_USE_INT2) && (TOUCH_USE_INT2==1)
+					 TOUCH_INT2 		PAD_GPIO /* IRQ */
+#else
+					 TOUCH_INT  		PAD_GPIO /* IRQ */
 #endif
 			   	>;
 	};
 		
 	pinctrl_display_enable: display-enable 	{
-		fsl,pins = < SPIN100_GPIO		PAD_GPIO_PU >; /* DISPLAY_ENABLE */
+		fsl,pins = < DISPLAY_ENABLE		PAD_GPIO_PU >; /* DISPLAY_ENABLE */
 	};
 };
 
@@ -34,15 +37,14 @@ Defines:
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_captouch>;
 		enable_wakeup = "true";
-#if (TOUCH_GPIO==45)
-		interrupt-parent = <spin45_gpio_parent>;
-		interrupts = <spin45_gpio_pin IRQ_TYPE_LEVEL_LOW>;
+#if defined(TOUCH_USE_INT2) && (TOUCH_USE_INT2==1)
+		interrupt-parent = <touch_int2_parent>;
+		interrupts = <touch_int2_pin IRQ_TYPE_LEVEL_LOW>;
+#else
+		interrupt-parent = <touch_int_parent>;
+		interrupts = <touch_int_pin IRQ_TYPE_LEVEL_LOW>;
 #endif
-#if (TOUCH_GPIO==55)
-		interrupt-parent = <spin55_gpio_parent>;
-		interrupts = <spin55_gpio_pin IRQ_TYPE_LEVEL_LOW>;
-#endif
-		reset-gpios         = <spin75_gpio GPIO_ACTIVE_HIGH>;
+		reset-gpios         = <touch_reset GPIO_ACTIVE_HIGH>;
 		touch-threshold     = <30>;
 		touch-gain          = <3>;
 		touch-offset        = <0>;
@@ -83,7 +85,7 @@ Defines:
 		compatible      = "az,atm0700";   /* call driver Panel-simple.c */
 		reg             = <0>;
 		pinctrl-0       = <&pinctrl_display_enable>;
-		enable-gpio     = <spin100_gpio GPIO_ACTIVE_HIGH>;
+		enable-gpio     = <display_enable GPIO_ACTIVE_HIGH>;
 		dsi-lanes       = <2>;
 		panel-width-mm  = <154>;
 		panel-height-mm = <86>;
@@ -157,7 +159,7 @@ Defines:
 };
 #endif
 /************************************************************************/
-#if defined (__DTS_TRIZEPS8MINI_PINFUNC_H) || defined (__DTS_TRIZEPS8NANO_PINFUNC_H)
+#if defined (__DTS_IMX8MM_PINFUNC_H) || defined (__DTS_IMX8MN_PINFUNC_H)
 &mipi_dsi {
 	port@1 {
 		mipi_dsi_out: endpoint {

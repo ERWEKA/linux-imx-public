@@ -23,6 +23,8 @@ dtb-y += 	kuk-trizeps8-ipant7.dtb \
 			kuk-myon2nano-ipanm7.dtb \
 			kuk-myon2-conxm-hdmi.dtb \
 			kuk-myon2nano-conxm-hdmi.dtb \
+			guf-tanaro-atm0700l61ct.dtb \
+
 
 always		:= $(dtb-y)
 subdir-y	:= $(dts-dirs)

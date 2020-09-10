@@ -51,6 +51,8 @@
 #define SPIN123_GPIO1_IO3                                  0x034 0x29C 0x000 0x0 0x0
 #define SPIN123_GPIO                                       0x034 0x29C 0x000 0x0 0x0
 #define spin123_gpio    &gpio1 3
+#define CAMERA_PWDN                                        0x034 0x29C 0x000 0x0 0x0
+#define camera_pwdn    &gpio1 3
 #define SPIN123_USDHC1_VSELECT                              0x034 0x29C 0x000 0x1 0x0
 #define SPIN123_SDMA1_EXT_EVENT0                            0x034 0x29C 0x000 0x5 0x0
 #define SPIN123_ANAMIX_XTAL_OK                              0x034 0x29C 0x000 0x6 0x0
@@ -65,6 +67,8 @@
 #define SPIN100_GPIO1_IO5                                   0x03C 0x2A4 0x000 0x0 0x0
 #define SPIN100_GPIO                                       0x03C 0x2A4 0x000 0x0 0x0
 #define spin100_gpio    &gpio1 5
+#define DISPLAY_ENABLE                                       0x03C 0x2A4 0x000 0x0 0x0
+#define display_enable    &gpio1 5
 #define SPIN100_M4_NMI                                      0x03C 0x2A4 0x000 0x1 0x0
 #define SPIN100_CCMSRCGPCMIX_PMIC_READY                     0x03C 0x2A4 0x000 0x5 0x0
 #define SPIN100_CCMSRCGPCMIX_INT_BOOT                       0x03C 0x2A4 0x000 0x6 0x0
@@ -72,6 +76,8 @@
 #define SPIN125_GPIO1_IO6                                   0x040 0x2A8 0x000 0x0 0x0
 #define SPIN125_GPIO                                       0x040 0x2A8 0x000 0x0 0x0
 #define spin125_gpio    &gpio1 6
+#define CAMERA_RESET                                       0x040 0x2A8 0x000 0x0 0x0
+#define camera_reset    &gpio1 6
 #define SPIN125_ENET1_MDC                                   0x040 0x2A8 0x000 0x1 0x0
 #define SPIN125_USDHC1_CD_B                                 0x040 0x2A8 0x000 0x5 0x0
 #define SPIN125_CCMSRCGPCMIX_EXT_CLK3                       0x040 0x2A8 0x000 0x6 0x0
@@ -216,6 +222,10 @@
 #define spin45_gpio     &gpio3 4
 #define spin45_gpio_parent  &gpio3
 #define spin45_gpio_pin     4
+#define TOUCH_INT                                   0x104 0x36C 0x000 0x5 0x0
+#define touch_int     &gpio3 4
+#define touch_int_parent  &gpio3
+#define touch_int_pin     4
 #define SPIN45_SIM_M_HADDR0                                0x104 0x36C 0x000 0x7 0x0
 #define WL_POWERDOWN_RAWNAND_CLE                                   0x108 0x370 0x000 0x0 0x0
 #define WL_POWERDOWN_QSPI_B_SCLK                                   0x108 0x370 0x000 0x1 0x0
@@ -312,6 +322,10 @@
 #define spin55_gpio  &gpio3 21
 #define spin55_gpio_parent  &gpio3
 #define spin55_gpio_pin     21
+#define TOUCH_INT2                                        0x148 0x3B0 0x000 0x5 0x0
+#define touch_int2  &gpio3 21
+#define touch_int2_parent  &gpio3
+#define touch_int2_pin     21
 #define SPIN73_SAI5_RX_DATA1                                0x14C 0x3B4 0x4D8 0x0 0x0
 #define SPIN73_SAI1_TX_DATA3                                0x14C 0x3B4 0x000 0x1 0x0
 #define SPIN73_SAI1_TX_SYNC                                 0x14C 0x3B4 0x4CC 0x2 0x0
@@ -328,6 +342,8 @@
 #define SPIN75_GPIO3_IO23                                   0x150 0x3B8 0x000 0x5 0x0
 #define SPIN75_GPIO                                        0x150 0x3B8 0x000 0x5 0x0
 #define spin75_gpio     &gpio3 23
+#define TOUCH_RESET                                         0x150 0x3B8 0x000 0x5 0x0
+#define touch_reset     &gpio3 23
 #define SPIN79_SAI5_RX_DATA3                                0x154 0x3BC 0x4E0 0x0 0x0
 #define SPIN79_SAI1_TX_DATA5                                0x154 0x3BC 0x000 0x1 0x0
 #define SPIN79_SAI1_TX_SYNC                                 0x154 0x3BC 0x4CC 0x2 0x2

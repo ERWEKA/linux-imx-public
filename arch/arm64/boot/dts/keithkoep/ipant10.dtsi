@@ -3,7 +3,7 @@
  *
  */
 
-#define TOUCH_GPIO  55
+#define TOUCH_USE_INT2      1
 
 &iomuxc {
 

@@ -12,8 +12,8 @@
 		clock-names            = "csi_mclk";
 		assigned-clock-rates   = <24000000>;
 		csi_id                 = <0>;
-		pwn-gpios              = <spin123_gpio 1>; /* Active Low  GPIO_ACTIVE_LOW>; */
-		rst-gpios              = <spin125_gpio 0>; /* Active High GPIO_ACTIVE_HIGH>; */
+		pwn-gpios              = <camera_pwdn 1>; /* Active Low  GPIO_ACTIVE_LOW>; */
+		rst-gpios              = <camera_reset 0>; /* Active High GPIO_ACTIVE_HIGH>; */
 		mclk                   = <24000000>;
 		mclk_source            = <0>;
 		port {
