@@ -87,8 +87,8 @@ static const struct reg_default wm8983_defaults[] = {
 	{ 0x2C, 0x0033 },     /* R44 - Input ctrl */
 	{ 0x2D, 0x0010 },     /* R45 - Left INP PGA gain ctrl */
 	{ 0x2E, 0x0010 },     /* R46 - Right INP PGA gain ctrl */
-	{ 0x2F, 0x0100 },     /* R47 - Left ADC BOOST ctrl */
-	{ 0x30, 0x0100 },     /* R48 - Right ADC BOOST ctrl */
+	{ 0x2F, 0x0170 },     /* R47 - Left ADC BOOST ctrl */
+	{ 0x30, 0x0170 },     /* R48 - Right ADC BOOST ctrl */
 	{ 0x31, 0x0002 },     /* R49 - Output ctrl */
 	{ 0x32, 0x0001 },     /* R50 - Left mixer ctrl */
 	{ 0x33, 0x0001 },     /* R51 - Right mixer ctrl */
@@ -163,6 +163,19 @@ static const DECLARE_TLV_DB_SCALE(aux_tlv, -1500, 300, 0);
 static const DECLARE_TLV_DB_SCALE(bypass_tlv, -1500, 300, 0);
 static const DECLARE_TLV_DB_SCALE(pga_boost_tlv, 0, 2000, 0);
 
+static const char *bias_sel_mode_text[] = { "0.9AVDD", "0.65AVDD" };
+static SOC_ENUM_SINGLE_DECL(bias_sel_mode,  WM8983_INPUT_CTRL,     8,bias_sel_mode_text);
+
+static const char *mono_text[] =    { "Stereo", "Mono" };
+static SOC_ENUM_SINGLE_DECL(mono_sel_mode, WM8983_AUDIO_INTERFACE, 0, mono_text);
+
+static const char *adcleft_text[] = { "ADC-Left", "ADC-Right" };
+static SOC_ENUM_SINGLE_DECL(adcleft_sel_mode, WM8983_AUDIO_INTERFACE, 1, adcleft_text);
+
+static const char *dacleft_text[] = { "DAC-Left", "DAC-Right" };
+static SOC_ENUM_SINGLE_DECL(dacleft_sel_mode, WM8983_AUDIO_INTERFACE, 2, adcleft_text);
+
+
 static const char *alc_sel_text[] = { "Off", "Right", "Left", "Stereo" };
 static SOC_ENUM_SINGLE_DECL(alc_sel, WM8983_ALC_CONTROL_1, 7, alc_sel_text);
 
@@ -225,103 +238,67 @@ static SOC_ENUM_SINGLE_DECL(depth_3d, WM8983_3D_CONTROL, 0,
 			    depth_3d_text);
 
 static const struct snd_kcontrol_new wm8983_snd_controls[] = {
-	SOC_SINGLE("Digital Loopback Switch", WM8983_COMPANDING_CONTROL,
-		   0, 1, 0),
-
-	SOC_ENUM("ALC Capture Function", alc_sel),
-	SOC_SINGLE_TLV("ALC Capture Max Volume", WM8983_ALC_CONTROL_1,
-		       3, 7, 0, alc_max_tlv),
-	SOC_SINGLE_TLV("ALC Capture Min Volume", WM8983_ALC_CONTROL_1,
-		       0, 7, 0, alc_min_tlv),
-	SOC_SINGLE_TLV("ALC Capture Target Volume", WM8983_ALC_CONTROL_2,
-		       0, 15, 0, alc_tar_tlv),
-	SOC_SINGLE("ALC Capture Attack", WM8983_ALC_CONTROL_3, 0, 10, 0),
-	SOC_SINGLE("ALC Capture Hold", WM8983_ALC_CONTROL_2, 4, 10, 0),
-	SOC_SINGLE("ALC Capture Decay", WM8983_ALC_CONTROL_3, 4, 10, 0),
-	SOC_ENUM("ALC Mode", alc_mode),
-	SOC_SINGLE("ALC Capture NG Switch", WM8983_NOISE_GATE,
-		   3, 1, 0),
-	SOC_SINGLE("ALC Capture NG Threshold", WM8983_NOISE_GATE,
-		   0, 7, 1),
-
-	SOC_DOUBLE_R_TLV("Capture Volume", WM8983_LEFT_ADC_DIGITAL_VOL,
-			 WM8983_RIGHT_ADC_DIGITAL_VOL, 0, 255, 0, adc_tlv),
-	SOC_DOUBLE_R("Capture PGA ZC Switch", WM8983_LEFT_INP_PGA_GAIN_CTRL,
-		     WM8983_RIGHT_INP_PGA_GAIN_CTRL, 7, 1, 0),
-	SOC_DOUBLE_R_TLV("Capture PGA Volume", WM8983_LEFT_INP_PGA_GAIN_CTRL,
-			 WM8983_RIGHT_INP_PGA_GAIN_CTRL, 0, 63, 0, pga_vol_tlv),
-
-	SOC_DOUBLE_R_TLV("Capture PGA Boost Volume",
-			 WM8983_LEFT_ADC_BOOST_CTRL, WM8983_RIGHT_ADC_BOOST_CTRL,
-			 8, 1, 0, pga_boost_tlv),
-
-	SOC_DOUBLE("ADC Inversion Switch", WM8983_ADC_CONTROL, 0, 1, 1, 0),
-	SOC_SINGLE("ADC 128x Oversampling Switch", WM8983_ADC_CONTROL, 8, 1, 0),
-
-	SOC_DOUBLE_R_TLV("Playback Volume", WM8983_LEFT_DAC_DIGITAL_VOL,
-			 WM8983_RIGHT_DAC_DIGITAL_VOL, 0, 255, 0, dac_tlv),
-
-	SOC_SINGLE("DAC Playback Limiter Switch", WM8983_DAC_LIMITER_1, 8, 1, 0),
-	SOC_SINGLE("DAC Playback Limiter Decay", WM8983_DAC_LIMITER_1, 4, 10, 0),
-	SOC_SINGLE("DAC Playback Limiter Attack", WM8983_DAC_LIMITER_1, 0, 11, 0),
-	SOC_SINGLE_TLV("DAC Playback Limiter Threshold", WM8983_DAC_LIMITER_2,
-		       4, 7, 1, lim_thresh_tlv),
-	SOC_SINGLE_TLV("DAC Playback Limiter Boost Volume", WM8983_DAC_LIMITER_2,
-		       0, 12, 0, lim_boost_tlv),
-	SOC_DOUBLE("DAC Inversion Switch", WM8983_DAC_CONTROL, 0, 1, 1, 0),
-	SOC_SINGLE("DAC Auto Mute Switch", WM8983_DAC_CONTROL, 2, 1, 0),
-	SOC_SINGLE("DAC 128x Oversampling Switch", WM8983_DAC_CONTROL, 3, 1, 0),
-
-	SOC_DOUBLE_R_TLV("Headphone Playback Volume", WM8983_LOUT1_HP_VOLUME_CTRL,
-			 WM8983_ROUT1_HP_VOLUME_CTRL, 0, 63, 0, out_tlv),
-	SOC_DOUBLE_R("Headphone Playback ZC Switch", WM8983_LOUT1_HP_VOLUME_CTRL,
-		     WM8983_ROUT1_HP_VOLUME_CTRL, 7, 1, 0),
-	SOC_DOUBLE_R("Headphone Switch", WM8983_LOUT1_HP_VOLUME_CTRL,
-		     WM8983_ROUT1_HP_VOLUME_CTRL, 6, 1, 1),
-
-	SOC_DOUBLE_R_TLV("Speaker Playback Volume", WM8983_LOUT2_SPK_VOLUME_CTRL,
-			 WM8983_ROUT2_SPK_VOLUME_CTRL, 0, 63, 0, out_tlv),
-	SOC_DOUBLE_R("Speaker Playback ZC Switch", WM8983_LOUT2_SPK_VOLUME_CTRL,
-		     WM8983_ROUT2_SPK_VOLUME_CTRL, 7, 1, 0),
-	SOC_DOUBLE_R("Speaker Switch", WM8983_LOUT2_SPK_VOLUME_CTRL,
-		     WM8983_ROUT2_SPK_VOLUME_CTRL, 6, 1, 1),
-
-	SOC_SINGLE("Speaker Inversion Switch", WM8983_BEEP_CONTROL, 4, 1, 0),
-	SOC_SINGLE("Speaker Boost Switch", WM8983_OUTPUT_CTRL, 2, 1, 0),
-
-	SOC_SINGLE("OUT3 Switch", WM8983_OUT3_MIXER_CTRL,
-		   6, 1, 1),
-
-	SOC_SINGLE("OUT4 Switch", WM8983_OUT4_MONO_MIX_CTRL,
-		   6, 1, 1),
-
-	SOC_SINGLE("High Pass Filter Switch", WM8983_ADC_CONTROL, 8, 1, 0),
-	SOC_ENUM("High Pass Filter Mode", filter_mode),
-	SOC_SINGLE("High Pass Filter Cutoff", WM8983_ADC_CONTROL, 4, 7, 0),
-
-	SOC_DOUBLE_R_TLV("Aux Bypass Volume",
-			 WM8983_LEFT_MIXER_CTRL, WM8983_RIGHT_MIXER_CTRL, 6, 7, 0,
-			 aux_tlv),
-	SOC_DOUBLE_R_TLV("Input PGA Bypass Volume",
-			 WM8983_LEFT_MIXER_CTRL, WM8983_RIGHT_MIXER_CTRL, 2, 7, 0,
-			 bypass_tlv),
-
-	SOC_ENUM_EXT("Equalizer Function", eqmode, eqmode_get, eqmode_put),
-	SOC_ENUM("EQ1 Cutoff", eq1_cutoff),
-	SOC_SINGLE_TLV("EQ1 Volume", WM8983_EQ1_LOW_SHELF,  0, 24, 1, eq_tlv),
-	SOC_ENUM("EQ2 Bandwidth", eq2_bw),
-	SOC_ENUM("EQ2 Cutoff", eq2_cutoff),
-	SOC_SINGLE_TLV("EQ2 Volume", WM8983_EQ2_PEAK_1, 0, 24, 1, eq_tlv),
-	SOC_ENUM("EQ3 Bandwidth", eq3_bw),
-	SOC_ENUM("EQ3 Cutoff", eq3_cutoff),
-	SOC_SINGLE_TLV("EQ3 Volume", WM8983_EQ3_PEAK_2, 0, 24, 1, eq_tlv),
+	SOC_SINGLE("Digital Loopback Switch",            WM8983_COMPANDING_CONTROL,                                     0, 1,  0),
+	SOC_ENUM("ALC Capture Function",                                                                                          alc_sel),
+	SOC_SINGLE_TLV("ALC Capture Max Volume",         WM8983_ALC_CONTROL_1,                                          3, 7,  0, alc_max_tlv),
+	SOC_SINGLE_TLV("ALC Capture Min Volume",         WM8983_ALC_CONTROL_1,                                          0, 7,  0, alc_min_tlv),
+	SOC_SINGLE_TLV("ALC Capture Target Volume",      WM8983_ALC_CONTROL_2,                                          0, 15, 0, alc_tar_tlv),
+	SOC_SINGLE("ALC Capture Attack",                 WM8983_ALC_CONTROL_3,                                          0, 15, 0),
+	SOC_SINGLE("ALC Capture Hold",                   WM8983_ALC_CONTROL_2,                                          4, 15, 0),
+	SOC_SINGLE("ALC Capture Decay",                  WM8983_ALC_CONTROL_3,                                          4, 15, 0),
+	SOC_ENUM(  "ALC Mode",                                                                                                    alc_mode),
+	SOC_SINGLE("ALC Capture NG Switch",              WM8983_NOISE_GATE,		                                3, 1,  0),
+	SOC_SINGLE("ALC Capture NG Threshold",           WM8983_NOISE_GATE,	                                        0, 7,  1),
+	SOC_DOUBLE_R_TLV("Capture Volume",               WM8983_LEFT_ADC_DIGITAL_VOL,   WM8983_RIGHT_ADC_DIGITAL_VOL,   0, 255,0, adc_tlv),
+	SOC_DOUBLE_R_TLV("Capture PGA Boost Switch",     WM8983_LEFT_ADC_BOOST_CTRL,    WM8983_RIGHT_ADC_BOOST_CTRL,    8, 1,  0, pga_boost_tlv),
+	SOC_DOUBLE_R_TLV("Capture PGA Volume",           WM8983_LEFT_INP_PGA_GAIN_CTRL, WM8983_RIGHT_INP_PGA_GAIN_CTRL, 0, 63, 0, pga_vol_tlv),
+	SOC_DOUBLE_R("Capture PGA ZC Switch",            WM8983_LEFT_INP_PGA_GAIN_CTRL, WM8983_RIGHT_INP_PGA_GAIN_CTRL, 7, 1,  0),
+//	SOC_DOUBLE_R("Capture PGA Volume Trigger",       WM8983_LEFT_INP_PGA_GAIN_CTRL, WM8983_RIGHT_INP_PGA_GAIN_CTRL, 8, 1,  0),
+	SOC_DOUBLE("ADC Inversion Switch",               WM8983_ADC_CONTROL,                                            0, 1,  1, 0),
+	SOC_SINGLE("ADC 128x Oversampling Switch",       WM8983_ADC_CONTROL,                                            3, 1,  0),
+	SOC_DOUBLE_R_TLV("Playback Volume",              WM8983_LEFT_DAC_DIGITAL_VOL,   WM8983_RIGHT_DAC_DIGITAL_VOL,   0, 255,0, dac_tlv),
+	SOC_SINGLE("DAC Playback Limiter Switch",        WM8983_DAC_LIMITER_1,                                          8, 1,  0),
+	SOC_SINGLE("DAC Playback Limiter Decay",         WM8983_DAC_LIMITER_1,                                          4, 10, 0),
+	SOC_SINGLE("DAC Playback Limiter Attack",        WM8983_DAC_LIMITER_1,                                          0, 11, 0),
+	SOC_SINGLE_TLV("DAC Playback Limiter Threshold", WM8983_DAC_LIMITER_2,	                                        4, 7,  1, lim_thresh_tlv),
+	SOC_SINGLE_TLV("DAC Playback Limiter Boost Volume", WM8983_DAC_LIMITER_2,                                       0, 12, 0, lim_boost_tlv),
+	SOC_DOUBLE("DAC Inversion Switch",               WM8983_DAC_CONTROL,                                            0, 1,  1, 0),
+	SOC_SINGLE("DAC Auto Mute Switch",               WM8983_DAC_CONTROL,                                            2, 1,  0),
+	SOC_SINGLE("DAC 128x Oversampling Switch",       WM8983_DAC_CONTROL,                                            3, 1,  0),
+	SOC_DOUBLE_R_TLV("Headphone Playback Volume",    WM8983_LOUT1_HP_VOLUME_CTRL,   WM8983_ROUT1_HP_VOLUME_CTRL,    0, 63, 0, out_tlv),
+	SOC_DOUBLE_R("Headphone Playback ZC Switch",     WM8983_LOUT1_HP_VOLUME_CTRL,   WM8983_ROUT1_HP_VOLUME_CTRL,    7, 1,  0),
+	SOC_DOUBLE_R("Headphone Switch",                 WM8983_LOUT1_HP_VOLUME_CTRL,   WM8983_ROUT1_HP_VOLUME_CTRL,    6, 1,  1),
+	SOC_DOUBLE_R_TLV("Speaker Playback Volume",      WM8983_LOUT2_SPK_VOLUME_CTRL,  WM8983_ROUT2_SPK_VOLUME_CTRL,   0, 63, 0, out_tlv),
+	SOC_DOUBLE_R("Speaker Playback ZC Switch",       WM8983_LOUT2_SPK_VOLUME_CTRL,  WM8983_ROUT2_SPK_VOLUME_CTRL,   7, 1,  0),
+	SOC_DOUBLE_R("Speaker Switch",                   WM8983_LOUT2_SPK_VOLUME_CTRL,  WM8983_ROUT2_SPK_VOLUME_CTRL,   6, 1,  1),
+	SOC_SINGLE("Speaker Inversion Switch",           WM8983_BEEP_CONTROL,                                           4, 1,  0),
+	SOC_SINGLE("Speaker Boost Switch",               WM8983_OUTPUT_CTRL,                                            2, 1,  0),
+	SOC_SINGLE("OUT3 Switch",                        WM8983_OUT3_MIXER_CTRL,		                        6, 1,  1),
+	SOC_SINGLE("OUT4 Switch",                        WM8983_OUT4_MONO_MIX_CTRL,		                        6, 1,  1),
+	SOC_SINGLE("High Pass Filter Switch",            WM8983_ADC_CONTROL,                                            8, 1, 0),
+	SOC_ENUM("High Pass Filter Mode",                                                                               filter_mode),
+	SOC_SINGLE("High Pass Filter Cutoff",            WM8983_ADC_CONTROL,                                            4, 7, 0),
+	SOC_DOUBLE_R_TLV("Aux Bypass Volume",		 WM8983_LEFT_MIXER_CTRL, WM8983_RIGHT_MIXER_CTRL,               6, 7, 0, aux_tlv),
+	SOC_DOUBLE_R_TLV("Input PGA Bypass Volume",	 WM8983_LEFT_MIXER_CTRL, WM8983_RIGHT_MIXER_CTRL,               2, 7, 0, bypass_tlv),
+	SOC_ENUM_EXT("Equalizer Function",               eqmode, eqmode_get, eqmode_put),
+	SOC_ENUM("EQ1 Cutoff",                                                                                                    eq1_cutoff),
+	SOC_SINGLE_TLV("EQ1 Volume",                     WM8983_EQ1_LOW_SHELF,                                          0, 24, 1, eq_tlv),
+	SOC_ENUM("EQ2 Bandwidth",                                                                                                 eq2_bw),
+	SOC_ENUM("EQ2 Cutoff",                                                                                                    eq2_cutoff),
+	SOC_SINGLE_TLV("EQ2 Volume",                     WM8983_EQ2_PEAK_1,                                             0, 24, 1, eq_tlv),
+	SOC_ENUM("EQ3 Bandwidth",                                                                                                 eq3_bw),
+	SOC_ENUM("EQ3 Cutoff",                                                                                                    eq3_cutoff),
+	SOC_SINGLE_TLV("EQ3 Volume",                     WM8983_EQ3_PEAK_2,                                             0, 24, 1, eq_tlv),
 	SOC_ENUM("EQ4 Bandwidth", eq4_bw),
 	SOC_ENUM("EQ4 Cutoff", eq4_cutoff),
-	SOC_SINGLE_TLV("EQ4 Volume", WM8983_EQ4_PEAK_3, 0, 24, 1, eq_tlv),
+	SOC_SINGLE_TLV("EQ4 Volume",                     WM8983_EQ4_PEAK_3,                                             0, 24, 1, eq_tlv),
 	SOC_ENUM("EQ5 Cutoff", eq5_cutoff),
-	SOC_SINGLE_TLV("EQ5 Volume", WM8983_EQ5_HIGH_SHELF, 0, 24, 1, eq_tlv),
-
-	SOC_ENUM("3D Depth", depth_3d),
+	SOC_SINGLE_TLV("EQ5 Volume",                     WM8983_EQ5_HIGH_SHELF,                                         0, 24, 1, eq_tlv),
+	SOC_ENUM("3D Depth",                                                                                                    depth_3d),
+	SOC_ENUM("Bias Voltage Select",                                                                                         bias_sel_mode),
+	SOC_ENUM("Mono",                                                                                                        mono_sel_mode),
+	SOC_ENUM("ADC Mono",                                                                                                    adcleft_sel_mode),
+	SOC_ENUM("DAC Mono",                                                                                                    dacleft_sel_mode),			
 };
 
 static const struct snd_kcontrol_new left_out_mixer[] = {
@@ -339,103 +316,70 @@ static const struct snd_kcontrol_new right_out_mixer[] = {
 };
 
 static const struct snd_kcontrol_new left_input_mixer[] = {
-	SOC_DAPM_SINGLE("L2 Switch", WM8983_INPUT_CTRL, 2, 1, 0),
+	SOC_DAPM_SINGLE("L2 Switch",   WM8983_INPUT_CTRL, 2, 1, 0),
 	SOC_DAPM_SINGLE("MicN Switch", WM8983_INPUT_CTRL, 1, 1, 0),
 	SOC_DAPM_SINGLE("MicP Switch", WM8983_INPUT_CTRL, 0, 1, 0),
 };
 
 static const struct snd_kcontrol_new right_input_mixer[] = {
-	SOC_DAPM_SINGLE("R2 Switch", WM8983_INPUT_CTRL, 6, 1, 0),
+	SOC_DAPM_SINGLE("R2 Switch",   WM8983_INPUT_CTRL, 6, 1, 0),
 	SOC_DAPM_SINGLE("MicN Switch", WM8983_INPUT_CTRL, 5, 1, 0),
 	SOC_DAPM_SINGLE("MicP Switch", WM8983_INPUT_CTRL, 4, 1, 0),
 };
 
 static const struct snd_kcontrol_new left_boost_mixer[] = {
-	SOC_DAPM_SINGLE_TLV("L2 Volume", WM8983_LEFT_ADC_BOOST_CTRL,
-			    4, 7, 0, boost_tlv),
-	SOC_DAPM_SINGLE_TLV("AUXL Volume", WM8983_LEFT_ADC_BOOST_CTRL,
-			    0, 7, 0, boost_tlv)
+	SOC_DAPM_SINGLE_TLV("L2 Volume",   WM8983_LEFT_ADC_BOOST_CTRL,	    4, 7, 0, boost_tlv),
+	SOC_DAPM_SINGLE_TLV("AUXL Volume", WM8983_LEFT_ADC_BOOST_CTRL,	    0, 7, 0, boost_tlv)
 };
 
 static const struct snd_kcontrol_new out3_mixer[] = {
-	SOC_DAPM_SINGLE("LMIX2OUT3 Switch", WM8983_OUT3_MIXER_CTRL,
-			1, 1, 0),
-	SOC_DAPM_SINGLE("LDAC2OUT3 Switch", WM8983_OUT3_MIXER_CTRL,
-			0, 1, 0),
+	SOC_DAPM_SINGLE("LMIX2OUT3 Switch", WM8983_OUT3_MIXER_CTRL,         1, 1, 0),
+	SOC_DAPM_SINGLE("LDAC2OUT3 Switch", WM8983_OUT3_MIXER_CTRL,         0, 1, 0),
 };
 
 static const struct snd_kcontrol_new out4_mixer[] = {
-	SOC_DAPM_SINGLE("LMIX2OUT4 Switch", WM8983_OUT4_MONO_MIX_CTRL,
-			4, 1, 0),
-	SOC_DAPM_SINGLE("RMIX2OUT4 Switch", WM8983_OUT4_MONO_MIX_CTRL,
-			1, 1, 0),
-	SOC_DAPM_SINGLE("LDAC2OUT4 Switch", WM8983_OUT4_MONO_MIX_CTRL,
-			3, 1, 0),
-	SOC_DAPM_SINGLE("RDAC2OUT4 Switch", WM8983_OUT4_MONO_MIX_CTRL,
-			0, 1, 0),
+	SOC_DAPM_SINGLE("LMIX2OUT4 Switch", WM8983_OUT4_MONO_MIX_CTRL,      4, 1, 0),
+	SOC_DAPM_SINGLE("RMIX2OUT4 Switch", WM8983_OUT4_MONO_MIX_CTRL,      1, 1, 0),
+	SOC_DAPM_SINGLE("LDAC2OUT4 Switch", WM8983_OUT4_MONO_MIX_CTRL,      3, 1, 0),
+	SOC_DAPM_SINGLE("RDAC2OUT4 Switch", WM8983_OUT4_MONO_MIX_CTRL,      0, 1, 0),
 };
 
 static const struct snd_kcontrol_new right_boost_mixer[] = {
-	SOC_DAPM_SINGLE_TLV("R2 Volume", WM8983_RIGHT_ADC_BOOST_CTRL,
-			    4, 7, 0, boost_tlv),
-	SOC_DAPM_SINGLE_TLV("AUXR Volume", WM8983_RIGHT_ADC_BOOST_CTRL,
-			    0, 7, 0, boost_tlv)
+	SOC_DAPM_SINGLE_TLV("R2 Volume",    WM8983_RIGHT_ADC_BOOST_CTRL,    4, 7, 0, boost_tlv),
+	SOC_DAPM_SINGLE_TLV("AUXR Volume",  WM8983_RIGHT_ADC_BOOST_CTRL,    0, 7, 0, boost_tlv)
 };
 
 static const struct snd_soc_dapm_widget wm8983_dapm_widgets[] = {
-	SND_SOC_DAPM_DAC("Left DAC", "Left Playback", WM8983_POWER_MANAGEMENT_3,
-			 0, 0),
-	SND_SOC_DAPM_DAC("Right DAC", "Right Playback", WM8983_POWER_MANAGEMENT_3,
-			 1, 0),
-	SND_SOC_DAPM_ADC("Left ADC", "Left Capture", WM8983_POWER_MANAGEMENT_2,
-			 0, 0),
-	SND_SOC_DAPM_ADC("Right ADC", "Right Capture", WM8983_POWER_MANAGEMENT_2,
-			 1, 0),
+	SND_SOC_DAPM_DAC("Left DAC",  "Left Playback",  WM8983_POWER_MANAGEMENT_3, 0, 0),
+	SND_SOC_DAPM_DAC("Right DAC", "Right Playback", WM8983_POWER_MANAGEMENT_3, 1, 0),
+	SND_SOC_DAPM_ADC("Left ADC",  "Left Capture",   WM8983_POWER_MANAGEMENT_2, 0, 0),
+	SND_SOC_DAPM_ADC("Right ADC", "Right Capture",  WM8983_POWER_MANAGEMENT_2, 1, 0),
 
-	SND_SOC_DAPM_MIXER("Left Output Mixer", WM8983_POWER_MANAGEMENT_3,
-			   2, 0, left_out_mixer, ARRAY_SIZE(left_out_mixer)),
-	SND_SOC_DAPM_MIXER("Right Output Mixer", WM8983_POWER_MANAGEMENT_3,
-			   3, 0, right_out_mixer, ARRAY_SIZE(right_out_mixer)),
+	SND_SOC_DAPM_MIXER("Left Output Mixer", WM8983_POWER_MANAGEMENT_3,     2, 0, left_out_mixer,  ARRAY_SIZE(left_out_mixer)),
+	SND_SOC_DAPM_MIXER("Right Output Mixer",WM8983_POWER_MANAGEMENT_3,     3, 0, right_out_mixer, ARRAY_SIZE(right_out_mixer)),
 
-	SND_SOC_DAPM_MIXER("Left Input Mixer", WM8983_POWER_MANAGEMENT_2,
-			   2, 0, left_input_mixer, ARRAY_SIZE(left_input_mixer)),
-	SND_SOC_DAPM_MIXER("Right Input Mixer", WM8983_POWER_MANAGEMENT_2,
-			   3, 0, right_input_mixer, ARRAY_SIZE(right_input_mixer)),
+	SND_SOC_DAPM_MIXER("Left Input Mixer",  WM8983_POWER_MANAGEMENT_2,     2, 0, left_input_mixer, ARRAY_SIZE(left_input_mixer)),
+	SND_SOC_DAPM_MIXER("Right Input Mixer", WM8983_POWER_MANAGEMENT_2,     3, 0, right_input_mixer,ARRAY_SIZE(right_input_mixer)),
 
-	SND_SOC_DAPM_MIXER("Left Boost Mixer", WM8983_POWER_MANAGEMENT_2,
-			   4, 0, left_boost_mixer, ARRAY_SIZE(left_boost_mixer)),
-	SND_SOC_DAPM_MIXER("Right Boost Mixer", WM8983_POWER_MANAGEMENT_2,
-			   5, 0, right_boost_mixer, ARRAY_SIZE(right_boost_mixer)),
+	SND_SOC_DAPM_MIXER("Left Boost Mixer",  WM8983_POWER_MANAGEMENT_2,     4, 0, left_boost_mixer, ARRAY_SIZE(left_boost_mixer)),
+	SND_SOC_DAPM_MIXER("Right Boost Mixer", WM8983_POWER_MANAGEMENT_2,     5, 0, right_boost_mixer,ARRAY_SIZE(right_boost_mixer)),
 
-	SND_SOC_DAPM_MIXER("OUT3 Mixer", WM8983_POWER_MANAGEMENT_1,
-			   6, 0, out3_mixer, ARRAY_SIZE(out3_mixer)),
+	SND_SOC_DAPM_MIXER("OUT3 Mixer",        WM8983_POWER_MANAGEMENT_1,     6, 0, out3_mixer,       ARRAY_SIZE(out3_mixer)),
 
-	SND_SOC_DAPM_MIXER("OUT4 Mixer", WM8983_POWER_MANAGEMENT_1,
-			   7, 0, out4_mixer, ARRAY_SIZE(out4_mixer)),
+	SND_SOC_DAPM_MIXER("OUT4 Mixer",        WM8983_POWER_MANAGEMENT_1,     7, 0, out4_mixer,       ARRAY_SIZE(out4_mixer)),
 
-	SND_SOC_DAPM_PGA("Left Capture PGA", WM8983_LEFT_INP_PGA_GAIN_CTRL,
-			 6, 1, NULL, 0),
-	SND_SOC_DAPM_PGA("Right Capture PGA", WM8983_RIGHT_INP_PGA_GAIN_CTRL,
-			 6, 1, NULL, 0),
+	SND_SOC_DAPM_PGA("Left Capture PGA",    WM8983_LEFT_INP_PGA_GAIN_CTRL, 6, 1, NULL, 0),
+	SND_SOC_DAPM_PGA("Right Capture PGA",   WM8983_RIGHT_INP_PGA_GAIN_CTRL,6, 1, NULL, 0),
 
-	SND_SOC_DAPM_PGA("Left Headphone Out", WM8983_POWER_MANAGEMENT_2,
-			 7, 0, NULL, 0),
-	SND_SOC_DAPM_PGA("Right Headphone Out", WM8983_POWER_MANAGEMENT_2,
-			 8, 0, NULL, 0),
+	SND_SOC_DAPM_PGA("Left Headphone Out",  WM8983_POWER_MANAGEMENT_2,     7, 0, NULL, 0),
+	SND_SOC_DAPM_PGA("Right Headphone Out", WM8983_POWER_MANAGEMENT_2,     8, 0, NULL, 0),
 
-	SND_SOC_DAPM_PGA("Left Speaker Out", WM8983_POWER_MANAGEMENT_3,
-			 5, 0, NULL, 0),
-	SND_SOC_DAPM_PGA("Right Speaker Out", WM8983_POWER_MANAGEMENT_3,
-			 6, 0, NULL, 0),
+	SND_SOC_DAPM_PGA("Left Speaker Out",    WM8983_POWER_MANAGEMENT_3,     5, 0, NULL, 0),
+	SND_SOC_DAPM_PGA("Right Speaker Out",   WM8983_POWER_MANAGEMENT_3,     6, 0, NULL, 0),
+	SND_SOC_DAPM_PGA("OUT3 Out",            WM8983_POWER_MANAGEMENT_3,     7, 0, NULL, 0),
+	SND_SOC_DAPM_PGA("OUT4 Out",            WM8983_POWER_MANAGEMENT_3,     8, 0, NULL, 0),
 
-	SND_SOC_DAPM_PGA("OUT3 Out", WM8983_POWER_MANAGEMENT_3,
-			 7, 0, NULL, 0),
-
-	SND_SOC_DAPM_PGA("OUT4 Out", WM8983_POWER_MANAGEMENT_3,
-			 8, 0, NULL, 0),
-
-	SND_SOC_DAPM_SUPPLY("MICBIAS", WM8983_POWER_MANAGEMENT_1, 4, 0,
-			    NULL, 0),
+	SND_SOC_DAPM_SUPPLY("MICBIAS",          WM8983_POWER_MANAGEMENT_1,     4, 0, NULL, 0),
 
 	SND_SOC_DAPM_INPUT("LIN"),
 	SND_SOC_DAPM_INPUT("LIP"),
@@ -503,7 +447,7 @@ static const struct snd_soc_dapm_route wm8983_audio_map[] = {
 	{ "Left Boost Mixer", "L2 Volume", "L2" },
 
 	{ "Right Capture PGA", NULL, "Right Input Mixer" },
-	{ "Left Capture PGA", NULL, "Left Input Mixer" },
+	{ "Left Capture PGA",  NULL, "Left Input Mixer" },
 
 	{ "Right Input Mixer", "R2 Switch", "R2" },
 	{ "Right Input Mixer", "MicN Switch", "RIN" },
@@ -900,6 +844,11 @@ static int wm8983_set_sysclk(struct snd_soc_dai *dai,
 	return 0;
 }
 
+#define VMIDSEL_OFF  0x0
+#define VMIDSEL_500K 0x2
+#define VMIDSEL_100K 0x1
+#define VMIDSEL_10K  0x3
+
 static int wm8983_set_bias_level(struct snd_soc_component *component,
 				 enum snd_soc_bias_level level)
 {
@@ -912,7 +861,7 @@ static int wm8983_set_bias_level(struct snd_soc_component *component,
 		/* VMID at 100k */
 		snd_soc_component_update_bits(component, WM8983_POWER_MANAGEMENT_1,
 				    WM8983_VMIDSEL_MASK,
-				    1 << WM8983_VMIDSEL_SHIFT);	
+				    VMIDSEL_10K << WM8983_VMIDSEL_SHIFT);	
 		// Microphone BIAS must be enabled too
 		snd_soc_component_update_bits(component, WM8983_POWER_MANAGEMENT_1,
 				    WM8983_MICBEN_MASK,
@@ -947,6 +896,7 @@ static int wm8983_set_bias_level(struct snd_soc_component *component,
 		}
 
 		/* VMID at 500k */
+		dev_err(component->dev, "VMID to: VMIDSEL_500K\n");
 		snd_soc_component_update_bits(component, WM8983_POWER_MANAGEMENT_1,
 				    WM8983_VMIDSEL_MASK,
 				    2 << WM8983_VMIDSEL_SHIFT);
