@@ -23,7 +23,10 @@ dtb-y += 	kuk-trizeps8-ipant7.dtb \
 			kuk-myon2nano-ipanm7.dtb \
 			kuk-myon2-conxm-hdmi.dtb \
 			kuk-myon2nano-conxm-hdmi.dtb \
+			kuk-sbcsom-atm0700l61ct.dtb \
+			kuk-sbcsom-hdmi.dtb \
 			guf-tanaro-atm0700l61ct.dtb \
+			guf-tanaro-fg0700w0dsswagl1.dtb \
 
 
 always		:= $(dtb-y)

@@ -10,12 +10,6 @@ Switches:
 #include "imx8mm.dtsi"
 #include "tanaro-pinfunc.h"
 
-#if  defined(TRIZEPS8MINI_V1R1) && (TRIZEPS8MINI_V1R1==1)
-#define TRIZEPS_HOGGRP_COMMON	MX8MM_IOMUXC_GPIO1_IO02_GPIO1_IO2  PAD_GPIO_PU   /* nRESET_OUT  SODIMM Pin 87  */
-#else
-#define TRIZEPS_HOGGRP_COMMON
-#endif
-
 / {
 	reserved-memory {
 		#address-cells = <2>;
@@ -579,6 +573,14 @@ Switches:
 
 &iomuxc {
 	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_hog>;
+
+    pinctrl_hog: hoggrp {
+		fsl,pins = < 
+		    		 CAMERA_PWDN		PAD_GPIO_PU   /* Camera Pwdn  */
+   					 CAMERA_RESET		PAD_GPIO_PU   /* Camera nRST  */
+		       >;
+	};
 
 	pinctrl_fec1: fec1grp {
 		fsl,pins = <
