@@ -5,7 +5,7 @@
 
 &iomuxc {
 	pinctrl_hdmi_int: hdmi-int 	{
-		fsl,pins = < PIN1_5_GPIO		PAD_GPIO >; /* HDMI_INT */
+		fsl,pins = < HDMI_INT_GPIO		PAD_GPIO >; /* HDMI_INT */
 	};
 };
 
@@ -14,8 +14,8 @@
 		compatible = "adi,adv7533";
 		reg = <0x39>;
 
-		interrupt-parent = <pin1_5_gpio_parent>;
-		interrupts = <pin1_5_gpio_pin IRQ_TYPE_LEVEL_LOW>;
+		interrupt-parent = <hdmi_int_gpio_parent>;
+		interrupts = <hdmi_int_gpio_pin IRQ_TYPE_LEVEL_LOW>;
 
 		adi,ignore-edid;
 		adi,dsi-lanes = <4>;
@@ -31,7 +31,7 @@
 	};
 };
 /************************************************************************/
-#if defined (__DTS_MYON2_PINFUNC_H) || defined (__DTS_MYON2NANO_PINFUNC_H)
+#if defined (__DTS_IMX8MM_PINFUNC_H) || defined (__DTS_IMX8MN_PINFUNC_H)
 &mipi_dsi {
 	status = "okay";
 

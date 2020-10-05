@@ -128,6 +128,10 @@
 #define pin1_5_gpio    &gpio1 15
 #define pin1_5_gpio_parent  &gpio1
 #define pin1_5_gpio_pin     15
+#define HDMI_INT_GPIO                                           0x064 0x2CC 0x000 0x0 0x0
+#define hdmi_int_gpio    &gpio1 15
+#define hdmi_int_gpio_parent  &gpio1
+#define hdmi_int_gpio_pin     15
 #define PIN1_5_USDHC3_WP                                      0x064 0x2CC 0x5B8 0x4 0x2
 #define PIN1_5_PWM4_OUT                                       0x064 0x2CC 0x000 0x5 0x0
 #define PIN1_5_CCMSRCGPCMIX_CLKO2                             0x064 0x2CC 0x000 0x6 0x0
