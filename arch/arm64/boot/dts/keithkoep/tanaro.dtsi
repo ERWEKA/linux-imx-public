@@ -320,6 +320,14 @@ Switches:
 	status = "okay";
 };
 
+/ {
+	mcp25xxfd_osc: mcp25xxfd_osc {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <40000000>;
+	};
+};
+
 &ecspi2 {
 	#address-cells = <1>;
 	#size-cells = <0>;
@@ -329,17 +337,15 @@ Switches:
 	cs-gpios = <&gpio5 13 GPIO_ACTIVE_LOW>;
 	status = "okay";
 
-/* TODO: richtigen Treiber finden
-	mcp251x0: mcp251x@0 {
-		compatible = "microchip,mcp2518";
+	mcp25xxfd: mcp25xxfd@0 {
+		compatible = "microchip,mcp2517fd";
 		reg = <0>;
-		clocks = <&clk16m>;
+		clocks = <&mcp25xxfd_osc>;
 		interrupt-parent = <&gpio3>;
-		interrupts = <27 0x2>;
+		interrupts = <27 IRQ_TYPE_LEVEL_LOW>;
 		spi-max-frequency = <10000000>;
 		status = "okay";
 	};    
-*/
 };
 
 &wdog1 {
