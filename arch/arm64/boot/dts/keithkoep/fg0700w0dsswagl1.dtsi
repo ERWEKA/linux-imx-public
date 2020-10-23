@@ -48,6 +48,24 @@ Defines:
 #endif
 		reset-gpios = <touch_reset GPIO_ACTIVE_HIGH>;
 	};
+
+	eeti@2a {
+		compatible = "eeti,exc3000";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_captouch>;
+		reg = <0x2a>;
+#if defined(TOUCH_USE_INT2) && (TOUCH_USE_INT2==1)
+		interrupt-parent = <touch_int_parent2>;
+		interrupts = <touch_int_pin2 IRQ_TYPE_LEVEL_HIGH>;
+#else
+		interrupt-parent = <touch_int_parent>;
+		interrupts = <touch_int_pin IRQ_TYPE_LEVEL_HIGH>;
+#endif
+//		touchscreen-inverted-x;
+//		touchscreen-swapped-x-y;
+		status = "okay";
+	};
+
 };
 
 &i2c3 {
