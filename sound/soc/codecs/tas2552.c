@@ -488,7 +488,8 @@ static int tas2552_runtime_suspend(struct device *dev)
 	regcache_cache_only(tas2552->regmap, true);
 	regcache_mark_dirty(tas2552->regmap);
 
-	gpiod_set_value(tas2552->enable_gpio, 0);
+    if (!IS_ERR(tas2552->enable_gpio))
+	    gpiod_set_value(tas2552->enable_gpio, 0);
 
 	return 0;
 }
@@ -497,7 +498,8 @@ static int tas2552_runtime_resume(struct device *dev)
 {
 	struct tas2552_data *tas2552 = dev_get_drvdata(dev);
 
-	gpiod_set_value(tas2552->enable_gpio, 1);
+	if (!IS_ERR(tas2552->enable_gpio))
+        gpiod_set_value(tas2552->enable_gpio, 1);
 
 	tas2552_sw_shutdown(tas2552, 0);
 
@@ -578,7 +580,8 @@ static int tas2552_component_probe(struct snd_soc_component *component)
 		return ret;
 	}
 
-	gpiod_set_value(tas2552->enable_gpio, 1);
+	if (!IS_ERR(tas2552->enable_gpio))
+        gpiod_set_value(tas2552->enable_gpio, 1);
 
 	ret = pm_runtime_get_sync(component->dev);
 	if (ret < 0) {
@@ -602,7 +605,8 @@ static int tas2552_component_probe(struct snd_soc_component *component)
 	return 0;
 
 probe_fail:
-	gpiod_set_value(tas2552->enable_gpio, 0);
+	if (!IS_ERR(tas2552->enable_gpio))
+        gpiod_set_value(tas2552->enable_gpio, 0);
 
 	regulator_bulk_disable(ARRAY_SIZE(tas2552->supplies),
 					tas2552->supplies);
@@ -615,7 +619,8 @@ static void tas2552_component_remove(struct snd_soc_component *component)
 
 	pm_runtime_put(component->dev);
 
-	gpiod_set_value(tas2552->enable_gpio, 0);
+	if (!IS_ERR(tas2552->enable_gpio))
+        gpiod_set_value(tas2552->enable_gpio, 0);
 };
 
 #ifdef CONFIG_PM
@@ -694,8 +699,6 @@ static int tas2552_probe(struct i2c_client *client,
 
 	data->enable_gpio = devm_gpiod_get_optional(dev, "enable",
 						    GPIOD_OUT_LOW);
-	if (IS_ERR(data->enable_gpio))
-		return PTR_ERR(data->enable_gpio);
 
 	data->tas2552_client = client;
 	data->regmap = devm_regmap_init_i2c(client, &tas2552_regmap_config);
