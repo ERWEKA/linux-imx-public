@@ -58,6 +58,33 @@ Switches:
 		vin-supply = <&reg_board_5v>;
 	};
 
+	reg_rs485_1_de: rs485_1_de {
+		compatible = "regulator-fixed";
+		regulator-name = "RS485_1_DE";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_rs485_1_de>;
+		gpio = <&gpio3 9 1>;
+		enable-active-high;  
+		regulator-always-on;
+		vin-supply = <&reg_board_5v>;
+	};
+
+	reg_keypad_pwr: keypad-pwr {
+		compatible = "regulator-fixed";
+		regulator-name = "Keypad PWR";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_keypad_pen>;
+		gpio = <&gpio5 5 1>;
+		enable-active-high; 
+		regulator-always-on;
+		vin-supply = <&reg_board_5v>;
+	};
+
+
 	reg_usb1_pwr: usb1-pwr {
 		compatible = "regulator-fixed";
 		regulator-name = "USB1 PWR";
@@ -170,6 +197,17 @@ Switches:
 		default-brightness-level = <80>;
 		status = "okay";
  	};
+
+    leds {
+        compatible = "gpio-leds";
+        status_led {
+            pinctrl-names         = "default";
+            pinctrl-0             = <&pinctrl_led_status>;
+            label                 = "Tanaro:green";
+            linux,default-trigger = "heartbeat";
+            gpios                 = <&gpio5 2 0>;
+        };
+    };
 };
 
 &pwm1 {
@@ -253,7 +291,7 @@ Switches:
 	pinctrl-0 = <&pinctrl_uart2>;
 	assigned-clocks = <&clk IMX8MM_CLK_UART2>;
 	assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
-    fsl,uart-has-rtscts;
+//    fsl,uart-has-rtscts; Not used in RS485 mode.
 	status = "okay";
 };
 
@@ -318,7 +356,7 @@ Switches:
 	pinctrl-1 = <&pinctrl_usdhc2_100mhz>, <&pinctrl_usdhc2_gpio>;
 	pinctrl-2 = <&pinctrl_usdhc2_200mhz>, <&pinctrl_usdhc2_gpio>;
 	cd-gpios = <&gpio2 12 GPIO_ACTIVE_LOW>;
-    wp-gpios = <&gpio2 20 GPIO_ACTIVE_LOW>;
+    wp-gpios = <&gpio2 20 GPIO_ACTIVE_HIGH>;
 	bus-width = <4>;
 	vmmc-supply = <&reg_usdhc2_vmmc>;
 	pm-ignore-notify;
@@ -888,10 +926,23 @@ Switches:
 		>;
 	};        
 
+    pinctrl_led_status: led-status {
+		fsl,pins = <
+			MX8MM_IOMUXC_SAI3_MCLK_GPIO5_IO2	0xc6
+		>;
+    };
+
 	pinctrl_5v_iso_enable: 5v-iso-enable 	{
         fsl,pins = < MX8MM_IOMUXC_NAND_DATA00_GPIO3_IO6     PAD_GPIO >;                     
 	};
 
+	pinctrl_rs485_1_de: rs485-1-de 	{
+        fsl,pins = < MX8MM_IOMUXC_NAND_DATA03_GPIO3_IO9     PAD_GPIO >;                     
+	};
+
+	pinctrl_keypad_pen: keypad-enable 	{
+		fsl,pins = < MX8MM_IOMUXC_SPDIF_EXT_CLK_GPIO5_IO5		PAD_GPIO >; 
+	};
 
 	pinctrl_usb1_enable: usb1-enable 	{
 		fsl,pins = < MX8MM_IOMUXC_GPIO1_IO12_GPIO1_IO12		PAD_GPIO >; 
