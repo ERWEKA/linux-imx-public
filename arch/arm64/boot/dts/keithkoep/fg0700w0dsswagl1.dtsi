@@ -30,42 +30,24 @@ Defines:
 };
 
 &i2c2 {
-	goodix@5d {
-		compatible = "goodix,gt911";
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_captouch>;
-		reg = <0x5d>;
-
-		touchscreen-screwed-x-y;	
-		touchscreen-inverted-x;
-		touchscreen-inverted-y;
-#if defined(TOUCH_USE_INT2) && (TOUCH_USE_INT2==1)
-    	interrupts-extended = <touch_int2 IRQ_TYPE_LEVEL_HIGH>;
-		irq-gpios = <touch_int2 GPIO_ACTIVE_HIGH>;
-#else
-    	interrupts-extended = <touch_int IRQ_TYPE_LEVEL_HIGH>;
-		irq-gpios = <touch_int GPIO_ACTIVE_HIGH>;
-#endif
-		reset-gpios = <touch_reset GPIO_ACTIVE_HIGH>;
-	};
 
 	eeti@2a {
-		compatible = "eeti,exc3000";
+		compatible = "eeti,exc3000_ts"; // out of tree driver
+		//compatible = "eeti,exc3000";  // kernel driver
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_captouch>;
 		reg = <0x2a>;
-#if defined(TOUCH_USE_INT2) && (TOUCH_USE_INT2==1)
-		interrupt-parent = <touch_int_parent2>;
-		interrupts = <touch_int_pin2 IRQ_TYPE_LEVEL_HIGH>;
-#else
 		interrupt-parent = <touch_int_parent>;
 		interrupts = <touch_int_pin IRQ_TYPE_LEVEL_HIGH>;
-#endif
-//		touchscreen-inverted-x;
-//		touchscreen-swapped-x-y;
+        irq-gpio = <touch_int GPIO_ACTIVE_HIGH>;
+
+        // Reset pol unklar, da Reset gar nicht funktioniert
+        reset-gpio = <touch_reset GPIO_ACTIVE_LOW>;
+        reset-low-active = <1>;
+        irq-low-active = <0>;
+
 		status = "okay";
 	};
-
 };
 
 &i2c3 {

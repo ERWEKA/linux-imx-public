@@ -419,10 +419,11 @@ Switches:
 };
 
 &i2c2 { /* Touch */
-	clock-frequency = <100000>;
+	clock-frequency = <400000>;
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_i2c2>;
 	status = "okay";
+
 
     stmpe811@41 {
 	    compatible = "st,stmpe811";
