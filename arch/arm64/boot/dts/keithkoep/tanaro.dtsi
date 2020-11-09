@@ -93,9 +93,7 @@ Switches:
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_usb1_enable>;
 		gpio = <&gpio1 12 1>;
-//		enable-active-high;  // Host
-        enable-active-low;   // Slave
-		regulator-always-on;
+		enable-active-high;
 		vin-supply = <&reg_board_5v>;
 	};
 
@@ -320,7 +318,6 @@ Switches:
 	hnp-disable;
 	srp-disable;
 	adp-disable;
-	usb-role-switch;
 	picophy,pre-emp-curr-control = <3>;
 	picophy,dc-vol-level-adjust = <7>;
 	status = "okay";
