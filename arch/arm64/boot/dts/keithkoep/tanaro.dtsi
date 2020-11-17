@@ -178,7 +178,7 @@ Switches:
 		};
 	};
 
-	backlight: backlight {
+	backlight1: backlight {
 		compatible = "pwm-backlight";
 		pwms = <&pwm1 0 100000 0>;
 		brightness-levels = < 0  1  2  3  4  5  6  7  8  9
@@ -214,7 +214,7 @@ Switches:
 	status = "okay";
 };
 
-&backlight {
+&backlight1 {
 	status = "okay";
 	pinctrl-0 = <&pinctrl_backlight_enable>;
 	enable-gpios = <&gpio1 4 GPIO_ACTIVE_HIGH>;    
