@@ -58,19 +58,6 @@ Switches:
 		vin-supply = <&reg_board_5v>;
 	};
 
-	reg_rs485_1_de: rs485_1_de {
-		compatible = "regulator-fixed";
-		regulator-name = "RS485_1_DE";
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		pinctrl-names = "default";
-		pinctrl-0 = <&pinctrl_rs485_1_de>;
-		gpio = <&gpio3 9 1>;
-		enable-active-high;  
-		regulator-always-on;
-		vin-supply = <&reg_board_5v>;
-	};
-
 	reg_keypad_pwr: keypad-pwr {
 		compatible = "regulator-fixed";
 		regulator-name = "Keypad PWR";
@@ -286,11 +273,17 @@ Switches:
 
 &uart2 {    /* UART2 as RS485_1 or UART */
 	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_uart2>;
+	pinctrl-0 = <&pinctrl_uart2 &pinctrl_rs485_1_de>;
 	assigned-clocks = <&clk IMX8MM_CLK_UART2>;
 	assigned-clock-parents = <&clk IMX8MM_SYS_PLL1_80M>;
-//    fsl,uart-has-rtscts; Not used in RS485 mode.
 	status = "okay";
+
+	// RS485 Mode
+	rts-gpios = <&gpio3 9 GPIO_ACTIVE_HIGH>; // GPIO to control the transmitter
+	// rs485-rx-during-tx;  // Halfduplex vs Fullduplex ?
+
+	// UART Mode
+	//uart-has-rtscts; // Not used in RS485 mode.
 };
 
 &uart3 {    /* UART3 to BTUART or UART3 (default: UART3). UART3 to as UART or RS232_xx_MDB*/
