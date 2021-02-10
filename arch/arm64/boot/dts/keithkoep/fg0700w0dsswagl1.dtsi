@@ -81,15 +81,15 @@ Defines:
 
 		display-timings {
 			timing {
-				clock-frequency = <66000000>;
+				clock-frequency = <51206400>;
 				hactive = <1024>;
 				vactive = <600>;
-				hfront-porch = <160>;
-				hsync-len = <4>;
-				hback-porch = <160>;
-				vfront-porch = <12>;
+				hfront-porch = <159>;
+				hsync-len = <2>;
+				hback-porch = <159>;
+				vfront-porch = <17>;
 				vsync-len = <1>;
-				vback-porch = <23>;
+				vback-porch = <17>;
 			};
 		};
 
