@@ -9,12 +9,12 @@
 #define ETHERNET_ONLY_100MBIT       0
 
 #include "trizeps8mini.dtsi"
-#include "pconxs.dtsi"
-#include "edt7res.dtsi"
+#include "ipant7.dtsi"
+#include "atm0700l61ct.dtsi"
 #include "ov5640.dtsi"
 
 / {
-	model      = "Keith & Koep GmbH pConXS V2 EDT7RES i.MX8MM Trizeps8-Mini";
+	model      = "Keith & Koep GmbH iPANT7 i.MX8MM Trizeps8-Mini";
 	compatible = "kk,trizeps8", "kk,trizeps8mini", "fsl,imx8mm-evk", "fsl,imx8mm";
 
 	chosen {

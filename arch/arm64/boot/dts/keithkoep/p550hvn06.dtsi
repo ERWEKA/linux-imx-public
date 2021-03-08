@@ -1,0 +1,134 @@
+/*
+ * Copyright 2020 Keith & Koep GmbH
+ *
+ */
+
+&iomuxc {		
+	pinctrl_display_enable: display-enable 	{
+		fsl,pins = < DISPLAY_ENABLE		PAD_GPIO_PU >; /* DISPLAY_ENABLE */
+	};
+};
+
+
+&i2c3 {
+    dsi_lvds_bridge: sn65dsi84@2c {
+		compatible = "ti,sn65dsi83";
+		reg = <0x2c>;
+		ti,dsi-lanes = <2>;
+		ti,lvds-format = <1>;
+		ti,lvds-bpp = <24>;
+		ti,lvds-channels = <1>;
+		ti,width-mm = <430>;
+		ti,height-mm = <254>;
+		enable-gpios = <lvds_en_gpio GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_i2c3_sn65dsi84_en>;
+		status = "okay";
+
+		display-timings {
+			lvds {
+				clock-frequency = <28000000>;
+				hactive = <320>;
+				vactive = <240>;
+				hback-porch = <68>;
+				hfront-porch = <20>;
+				vback-porch = <18>;
+				vfront-porch = <4>;
+				hsync-len = <1>;
+				vsync-len = <1>;
+				hsync-active = <0>;
+				vsync-active = <0>;
+				de-active = <1>;
+				pixelclk-active = <0>;
+			};
+		};
+
+		port {
+			dsi_lvds_bridge_in: endpoint {
+				remote-endpoint = <&mipi_dsi_out>;
+			};
+		};
+    };                            
+};
+
+&mipi_dsi {
+	status = "okay";
+};
+
+
+/************************************************************************/
+#if defined (__DTS_TRIZEPS8_PINFUNC_H)
+ccc
+&hdmi {
+	status = "disabled";
+};
+
+&lcdif {
+	status = "disabled";
+};
+
+&dcss {
+	status = "okay";
+
+	clocks = <&clk IMX8MQ_CLK_DISP_APB_ROOT>,
+		 <&clk IMX8MQ_CLK_DISP_AXI_ROOT>,
+		 <&clk IMX8MQ_CLK_DISP_RTRM_ROOT>,
+		 <&clk IMX8MQ_CLK_DC_PIXEL>,
+		 <&clk IMX8MQ_CLK_DISP_DTRC>;
+	clock-names = "apb", "axi", "rtrm", "pix", "dtrc";
+	assigned-clocks = <&clk IMX8MQ_CLK_DC_PIXEL>,
+					  <&clk IMX8MQ_VIDEO_PLL1_BYPASS>,
+					  <&clk IMX8MQ_VIDEO_PLL1_REF_SEL>,
+					  <&clk IMX8MQ_CLK_DISP_AXI>,
+					  <&clk IMX8MQ_CLK_DISP_RTRM>;
+	assigned-clock-parents = <&clk IMX8MQ_VIDEO_PLL1_OUT>,
+							 <&clk IMX8MQ_VIDEO_PLL1>,
+							 <&clk IMX8MQ_CLK_27M>,
+							 <&clk IMX8MQ_SYS1_PLL_800M>,
+							 <&clk IMX8MQ_SYS1_PLL_800M>;
+	assigned-clock-rates = <600000000>, <0>, <0>,
+						   <800000000>,
+						   <400000000>;
+
+	port@0 {
+		dcss_out: endpoint {
+			remote-endpoint = <&mipi_dsi_in>;
+		};
+	};
+};
+
+&mipi_dsi {
+    fsl,clock-drop-level = <2>;
+	ports {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		port@0 {
+			reg = <0>;
+			mipi_dsi_in: endpoint {
+				remote-endpoint = <&dcss_out>;
+			};
+		};
+
+		port@1 {
+			reg = <1>;
+			mipi_dsi_out: endpoint {
+				remote-endpoint = <&panel1_in>;
+			};
+		};
+	};
+};
+#endif
+/************************************************************************/
+#if defined (__DTS_IMX8MM_PINFUNC_H) || defined (__DTS_IMX8MN_PINFUNC_H)
+&mipi_dsi {
+	port@1 {
+		mipi_dsi_out: endpoint {
+			remote-endpoint = <&dsi_lvds_bridge_in>;
+			attach-bridge;
+		};
+	};
+};
+#endif
+/************************************************************************/
+

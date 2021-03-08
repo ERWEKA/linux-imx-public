@@ -6,7 +6,7 @@
 /dts-v1/;
 
 // Add defines here, which control behaviour of .dtsi:
-#define ETHERNET_ONLY_100MBIT       1
+#define ETHERNET_ONLY_100MBIT       0
 
 #include "trizeps8nano.dtsi"
 #include "pconxs.dtsi"

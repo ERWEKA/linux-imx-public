@@ -30,6 +30,7 @@ Defines:
 };
 
 &i2c2 {
+    // AZ Standard Version
 	goodix@5d {
 		compatible = "goodix,gt911";
 		pinctrl-names = "default";
@@ -47,6 +48,27 @@ Defines:
 		irq-gpios = <touch_int GPIO_ACTIVE_HIGH>;
 #endif
 		reset-gpios = <touch_reset GPIO_ACTIVE_HIGH>;
+	};
+    // Keith & Koep Version
+	edt-ft5x06@38 {
+		compatible = "edt,edt-ft5x06", "edt,edt-ft5406";
+		reg = <0x38>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_captouch>;
+		enable_wakeup = "true";
+#if defined(TOUCH_USE_INT2) && (TOUCH_USE_INT2==1)
+		interrupt-parent = <touch_int2_parent>;
+		interrupts = <touch_int2_pin IRQ_TYPE_LEVEL_LOW>;
+#else
+		interrupt-parent = <touch_int_parent>;
+		interrupts = <touch_int_pin IRQ_TYPE_LEVEL_LOW>;
+#endif
+		reset-gpios         = <touch_reset GPIO_ACTIVE_HIGH>;
+		touch-threshold     = <30>;
+		touch-gain          = <3>;
+		touch-offset        = <0>;
+		touch-report-rate   = <8>;
+		linux,wakeup;
 	};
 };
 
