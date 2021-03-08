@@ -3781,6 +3781,37 @@ static const struct panel_desc_dsi dataimage_scf1001 = {
 	.lanes = 4,
 };
 
+static const struct drm_display_mode auo_p550hvn06_mode = {
+	.clock = 71000,
+	.hdisplay = 1920,
+	.hsync_start = 1920 + 10,
+	.hsync_end = 1920 + 10 + 140,
+	.htotal = 1920 + 10 + 140 + 10,
+	.vdisplay = 1080,
+	.vsync_start = 1080 + 10,
+	.vsync_end = 1080 + 10 + 25,
+	.vtotal = 1080 + 10 + 25 + 10,
+	.vrefresh = 60,
+	.flags = DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_NVSYNC,
+};
+
+static const struct panel_desc_dsi auo_p550hvn06 = {
+	.desc = {
+		.modes = &auo_p550hvn06_mode,
+		.num_modes = 1,
+		.bpc = 8,
+		.size = {
+			.width = 1210,
+			.height = 680,
+		},
+		.bus_format = MEDIA_BUS_FMT_RGB888_1X24,
+		.bus_flags = DRM_BUS_FLAG_DE_HIGH,
+	},
+	.flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE,
+	.format = MIPI_DSI_FMT_RGB888,
+	.lanes = 4,
+};
+
 static const struct drm_display_mode az_atm0700_mode = {
 	.clock = 33300,
 	.hdisplay = 800,
@@ -3859,6 +3890,9 @@ static const struct of_device_id dsi_of_match[] = {
 	}, {
 		.compatible = "dataimage,scf1001",
 		.data = &dataimage_scf1001
+	}, {
+		.compatible = "auo,p550hvn06",
+		.data = &auo_p550hvn06
 	}, {
 		.compatible = "az,atm0700",
 		.data = &az_atm0700
