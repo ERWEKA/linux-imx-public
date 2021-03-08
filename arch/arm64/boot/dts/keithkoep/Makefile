@@ -2,6 +2,7 @@
 
 dtb-y += 	kuk-trizeps8-ipant7.dtb \
 			kuk-trizeps8mini-ipant7.dtb \
+			kuk-trizeps8mini-ipant7_v2.dtb \
 			kuk-trizeps8nano-ipant7.dtb \
 			kuk-trizeps8-ipant10.dtb \
 			kuk-trizeps8mini-ipant10.dtb \
@@ -19,6 +20,8 @@ dtb-y += 	kuk-trizeps8-ipant7.dtb \
 			kuk-trizeps8-pconxs_v2-atm0700l61ct.dtb \
 			kuk-trizeps8mini-pconxs_v2-atm0700l61ct.dtb \
 			kuk-trizeps8nano-pconxs_v2-atm0700l61ct.dtb \
+			kuk-trizeps8mini-pconxs-p550hvn06.dtb \
+			kuk-trizeps8mini-pconxs_v3-am19201080d1tzqw.dtb \
 			kuk-myon2-ipanm7.dtb \
 			kuk-myon2nano-ipanm7.dtb \
 			kuk-myon2-conxm-hdmi.dtb \
