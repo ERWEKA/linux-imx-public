@@ -124,7 +124,7 @@ static int sn65dsi84_probe(struct i2c_client *client,
 
 	prop = of_find_property(np, "sn65dsi84,addresses", NULL);
 	if (!prop)
-		return -EINVAL;
+		return -EINVAL;        
 	if (!prop->value)
 		return -ENODATA;
 
@@ -170,10 +170,12 @@ static int sn65dsi84_remove(struct i2c_client *client)
 {
 	struct gpio_desc *enable_gpio;
 
-	enable_gpio = devm_gpiod_get_optional(&client->dev, "enable", GPIOD_OUT_LOW);
+    dev_err(&client->dev, "Remove SN65DSI84 chip:\n");
+	/*
+    enable_gpio = devm_gpiod_get_optional(&client->dev, "enable", GPIOD_OUT_LOW);
 	if (enable_gpio)
 		gpiod_set_value_cansleep(enable_gpio, 0);
-
+*/
 	return 0;
 }
 
