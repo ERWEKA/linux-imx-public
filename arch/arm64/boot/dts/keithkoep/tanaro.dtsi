@@ -387,14 +387,16 @@ Switches:
 	status = "okay";
 
 	mcp25xxfd: mcp25xxfd@0 {
-		compatible = "microchip,mcp2517fd";
+		compatible = "microchip,mcp2518fd";
 		reg = <0>;
 		clocks = <&mcp25xxfd_osc>;
-		interrupt-parent = <&gpio3>;
-		interrupts = <27 IRQ_TYPE_LEVEL_LOW>;
+		interrupt-parent = <&gpio5>;
+		interrupts = <4 IRQ_TYPE_LEVEL_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_mcp25xxfd_int>;
 		spi-max-frequency = <10000000>;
 		status = "okay";
-	};    
+	};
 };
 
 &wdog1 {
@@ -894,6 +896,12 @@ Switches:
 			MX8MM_IOMUXC_ECSPI2_SCLK_ECSPI2_SCLK		0x82
 			MX8MM_IOMUXC_ECSPI2_MOSI_ECSPI2_MOSI		0x82
 			MX8MM_IOMUXC_ECSPI2_MISO_ECSPI2_MISO		0x82
+		>;
+	};
+
+	pinctrl_mcp25xxfd_int: mcp25xxfdintgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SPDIF_RX_GPIO5_IO4			0x80000000
 		>;
 	};
 
