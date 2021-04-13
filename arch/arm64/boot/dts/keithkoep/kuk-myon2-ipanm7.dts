@@ -7,6 +7,15 @@
 
 // Add defines here, which control behaviour of .dtsi:
 
+#define  OTG_HOST                0
+#define  OTG_SLAVE               1
+#define  OTG_OTG                 2
+
+#define  USB1_OTG_FUNC           OTG_HOST   /* iPANM7 should tie ID to GND if USB Slave is not connected
+                                             *  Until this patch is applied USB can be HOST Only
+					     */
+
+
 #include "myon2.dtsi"
 #include "ipanm7.dtsi"
 

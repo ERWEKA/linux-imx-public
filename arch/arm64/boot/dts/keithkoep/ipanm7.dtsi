@@ -23,13 +23,13 @@
 		fsl,pins = < PIN1_62_GPIO		PAD_GPIO_PU	>;
 	};
 
-	pinctrl_ipanm7_captouch: ipant7-captouchgrp {
+	pinctrl_ipanm7_captouch: ipanm7-captouchgrp {
 		fsl,pins = <
 					 PIN0_62_GPIO		PAD_GPIO /* TOUCH_RESET/WAKE */
 					 PIN0_64_GPIO		PAD_GPIO /* TOUCH_INT */
 			   	>;
 	};
-		
+
 	pinctrl_display_enable: display-enable 	{
 		fsl,pins = < PIN1_62_GPIO		PAD_GPIO >; /* DISPLAY_ENABLE */
 	};
@@ -130,8 +130,8 @@
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_ipanm7_captouch>;
 		enable_wakeup = "true";
-		interrupts-extended = <pin0_62_gpio IRQ_TYPE_LEVEL_LOW>;
-		reset-gpios         = <pin0_64_gpio GPIO_ACTIVE_HIGH>;
+		interrupts-extended = <pin0_64_gpio IRQ_TYPE_LEVEL_LOW>;
+		reset-gpios         = <pin0_62_gpio GPIO_ACTIVE_HIGH>;
 		touch-threshold     = <30>;
 		touch-gain          = <3>;
 		touch-offset        = <0>;
@@ -142,7 +142,13 @@
 
 &usbotg1 {
 	vbus-supply = <&reg_usbotg_pwr>; 
-	disable-over-current; 
+	disable-over-current;
+#if USB1_OTG_FUNC == OTG_HOST	
+	dr_mode = "host";
+#endif
+#if USB1_OTG_FUNC == OTG_OTG
+	dr_mode = "otg";
+#endif
 };
 
 #if !defined (__DTS_IMX8MN_PINFUNC_H)
