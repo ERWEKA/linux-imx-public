@@ -414,6 +414,8 @@ Switches:
 	non-removable;
 #if defined(TRIZEPS8MINI_USDHC1_VQMMC_MCU) && (TRIZEPS8MINI_USDHC1_VQMMC_MCU==1)
     vqmmc-supply = <&mcutouch>;
+#else
+    no-1-8-v;    
 #endif
 	status = "okay";
 };
