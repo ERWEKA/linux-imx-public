@@ -1,0 +1,29 @@
+/*
+ * Copyright 2020 Keith & Koep GmbH
+ *
+ */
+
+/dts-v1/;
+
+// Add defines here, which control behaviour of .dtsi:
+#define ETHERNET_ONLY_100MBIT       0
+#define DISPLAY_ONLY_18BPP          1
+
+#include "trizeps8mini.dtsi"
+#include "pconxs.dtsi"
+#include "atm0700.dtsi"
+#include "ov5640.dtsi"
+
+/ {
+	model      = "Keith & Koep GmbH pConXS III ATM0700 i.MX8MM Trizeps8-Mini";
+	compatible = "kk,trizeps8", "kk,trizeps8mini", "fsl,imx8mm-evk", "fsl,imx8mm";
+
+	chosen {
+		stdout-path = &uart1;
+	};
+};
+
+&usbotg1 {
+	dr_mode = "host";
+	status = "okay";
+};
