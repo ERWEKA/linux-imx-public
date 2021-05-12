@@ -68,6 +68,10 @@ Defines:
 		touch-gain          = <3>;
 		touch-offset        = <0>;
 		touch-report-rate   = <8>;
+        yreverse            = "true";
+        xreverse            = "true";
+		xres                = <1024>;
+		yres	            = <600>;
 		linux,wakeup;
 	};
 };
