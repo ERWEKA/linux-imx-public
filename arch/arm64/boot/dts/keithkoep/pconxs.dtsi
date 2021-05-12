@@ -25,7 +25,6 @@ Defines:
 					 SPIN102_GPIO  		PAD_GPIO_PU   /* Audio Amp                  */
 		    		 SPIN123_GPIO		PAD_GPIO_PU   /* Camera Pwdn SODIMM Pin 123 */
    					 SPIN125_GPIO		PAD_GPIO_PU   /* Camera nRST SODIMM Pin 125 */
-		    		 SPIN59_GPIO		PAD_GPIO_PU   /* Card Detect Act.low     59 */
 		       >;
 	};
 
@@ -81,6 +80,15 @@ Defines:
 	reg_3v3: 3v3 {
 		compatible = "regulator-fixed";
 		regulator-name = "+3V3";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+		vin-supply = <&reg_vin_fused>;
+	};
+
+    reg_display_pwr: display-pwr {
+		compatible = "regulator-fixed";
+		regulator-name = "DISPLAY PWCTRL";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
 		regulator-always-on;
