@@ -57,6 +57,9 @@
 #define M09_REGISTER_NUM_X              0x94
 #define M09_REGISTER_NUM_Y              0x95
 
+#define FT5316DME_REGISTER_GAIN         0x07
+#define FT5316DME_SWITCH_MODE_DELAY     125
+
 #define WORK_REGISTER_OPMODE		0x3c
 #define FACTORY_REGISTER_OPMODE		0x01
 
@@ -74,9 +77,11 @@
 #define SaveU16Get( x)                  (((((PUCHAR)(&(x)))[1])|((((PUCHAR)(&(x)))[0])<<8))&0xFFFF)
 
 enum edt_ver {
+    UNKNOWN_AUTODETECT = 0,
 	M06,
 	M09,
 	EV,
+    FT5316DME,
 };
 
 static int swapxy=0;
@@ -109,6 +114,8 @@ struct edt_ft5x06_ts_data {
         int swapxy;
 	int prop_num_x;
 	int prop_num_y;
+	int prop_xres;
+	int prop_yres;
 
 #if defined(CONFIG_DEBUG_FS)
 	struct dentry *debug_dir;
@@ -127,6 +134,7 @@ struct edt_ft5x06_ts_data {
 
 	struct edt_reg_addr reg_addr;
 	enum edt_ver version;
+    enum edt_ver alternate_version;
         int driver_suspended;
         int driver_sendbuttonup;  
 };
@@ -222,7 +230,8 @@ static irqreturn_t edt_ft5x06_ts_isr(int irq, void *dev_id)
 			datalen = 26; //how much bytes to listen for
 			break;
 		}
-	        case EV:
+        case FT5316DME:
+	    case EV:
 		case M09:{
 			cmd = 0x02;
 			offset = 1;
@@ -364,7 +373,8 @@ static int edt_ft5x06_register_write(struct edt_ft5x06_ts_data *tsdata,
 
 			return edt_ft5x06_ts_readwrite(tsdata->client, 4, wrbuf, 0, NULL);
 		}
-	        case EV:	
+        case FT5316DME:
+	    case EV:	
 		case M09:{
 			u8 wrbuf[2];
 			wrbuf[0] = addr;
@@ -399,6 +409,7 @@ static int edt_ft5x06_register_read(struct edt_ft5x06_ts_data *tsdata,
 			}
 			return rdbuf[0];
 	   }
+       case FT5316DME:
 	   case EV:
 	   case M09:{
 			u8 wrbuf[0], rdbuf[0];
@@ -421,9 +432,10 @@ struct edt_ft5x06_attribute {
 	u8 limit_high;
 	u8 addr_m06;
 	u8 addr_m09;
+    u8 addr_ft5316;
 };
 
-#define EDT_ATTR(_field, _mode, _addr_m06, _addr_m09, _limit_low, _limit_high) \
+#define EDT_ATTR(_field, _mode, _addr_m06, _addr_m09, _addr_ft5316, _limit_low, _limit_high) \
 	struct edt_ft5x06_attribute edt_ft5x06_attr_##_field = {	       \
 		.dattr = __ATTR(_field, _mode,			               \
 				edt_ft5x06_setting_show,		       \
@@ -432,6 +444,7 @@ struct edt_ft5x06_attribute {
 			offsetof(struct edt_ft5x06_ts_data, _field),	       \
 		.addr_m06 = _addr_m06,					       \
 		.addr_m09 = _addr_m09,					       \
+        .addr_ft5316 = _addr_ft5316,                    \
 		.limit_low = _limit_low,				       \
 		.limit_high = _limit_high,				       \
 	}
@@ -460,6 +473,9 @@ static ssize_t edt_ft5x06_setting_show(struct device *dev,
 		case M06:
 			addr = attr->addr_m06;
 			break;
+        case FT5316DME:
+            addr = attr->addr_ft5316;
+            break;
 		case EV:
 		case M09:
 			addr = attr->addr_m09;
@@ -470,7 +486,16 @@ static ssize_t edt_ft5x06_setting_show(struct device *dev,
 	}
 
 	if (addr != NO_REGISTER) {
-		val = edt_ft5x06_register_read(tsdata, addr);
+	    if (tsdata->version == FT5316DME)
+        {
+            edt_ft5x06_register_write(tsdata,  0, 0x40);    // Set to Test-Mode
+		    val = edt_ft5x06_register_read(tsdata, addr);
+            mdelay(FT5316DME_SWITCH_MODE_DELAY);
+            edt_ft5x06_register_write(tsdata,  0, 0x00);    // Set to Operating-Mode
+        }else            
+        {
+		    val = edt_ft5x06_register_read(tsdata, addr);
+        }
 	        // printk( KERN_ERR "EDT-(%s) Red Reg 0x%x  %d\n",EDT_VERS_STR(tsdata->version), addr, val);
 		if (val < 0) {
 			error = val;
@@ -533,6 +558,9 @@ static ssize_t edt_ft5x06_setting_store(struct device *dev,
 		case M09:
 			addr = attr->addr_m09;
 			break;
+        case FT5316DME:
+            addr = attr->addr_ft5316;
+            break;
 		default:
 			addr = 0;
 			break;
@@ -541,7 +569,16 @@ static ssize_t edt_ft5x06_setting_store(struct device *dev,
 	if (addr != NO_REGISTER) 
 	{
 	        // unsigned int readback;
-		error = edt_ft5x06_register_write(tsdata, addr, val);
+	    if (tsdata->version == FT5316DME)
+        {
+            edt_ft5x06_register_write(tsdata,  0, 0x40);    // Set to Test-Mode
+		    error = edt_ft5x06_register_write(tsdata, addr, val);
+            mdelay(FT5316DME_SWITCH_MODE_DELAY);
+            edt_ft5x06_register_write(tsdata,  0, 0x00);    // Set to Operating-Mode
+        }else
+        {            
+		    error = edt_ft5x06_register_write(tsdata, addr, val);
+        }
 		// readback = edt_ft5x06_register_read(tsdata, addr);
 	        // printk( KERN_ERR "EDT Wrote-(%s) %d to Reg 0x%x readback %d\n",EDT_VERS_STR(tsdata->version),val,addr,readback);
 		if (error) {
@@ -558,10 +595,10 @@ out:
 	return error ?: count;
 }
 
-static EDT_ATTR(gain, S_IWUSR        | S_IRUGO, WORK_REGISTER_GAIN,	   M09_REGISTER_GAIN,        0, 31);
-static EDT_ATTR(offset, S_IWUSR      | S_IRUGO, WORK_REGISTER_OFFSET,      M09_REGISTER_OFFSET,      0, 31);
-static EDT_ATTR(threshold, S_IWUSR   | S_IRUGO,	WORK_REGISTER_THRESHOLD,   M09_REGISTER_THRESHOLD,  20, 80);
-static EDT_ATTR(report_rate, S_IWUSR | S_IRUGO,	WORK_REGISTER_REPORT_RATE, NO_REGISTER, 3, 14);
+static EDT_ATTR(gain, S_IWUSR        | S_IRUGO, WORK_REGISTER_GAIN,	   M09_REGISTER_GAIN, FT5316DME_REGISTER_GAIN, 0, 31);
+static EDT_ATTR(offset, S_IWUSR      | S_IRUGO, WORK_REGISTER_OFFSET,      M09_REGISTER_OFFSET, NO_REGISTER,       0, 31);
+static EDT_ATTR(threshold, S_IWUSR   | S_IRUGO,	WORK_REGISTER_THRESHOLD,   M09_REGISTER_THRESHOLD, NO_REGISTER, 20, 80);
+static EDT_ATTR(report_rate, S_IWUSR | S_IRUGO,	WORK_REGISTER_REPORT_RATE, NO_REGISTER, NO_REGISTER, 3, 14);
 
 static struct attribute *edt_ft5x06_attrs[] = 
 {
@@ -597,7 +634,7 @@ static int edt_ft5x06_factory_mode(struct edt_ft5x06_ts_data *tsdata)
 	}
 
 	/* mode register is 0x3c when in the work mode */
-	if (tsdata->version == M09 || tsdata->version == EV )
+	if ((tsdata->version == M09) || (tsdata->version == EV) || (tsdata->version == FT5316DME))
 		goto m09_out;
 
 	error = edt_ft5x06_register_write(tsdata, WORK_REGISTER_OPMODE, 0x03);
@@ -677,9 +714,18 @@ static int edt_ft5x06_work_mode(struct edt_ft5x06_ts_data *tsdata)
 	tsdata->raw_buffer = NULL;
 
 	/* restore parameters */
-	edt_ft5x06_register_write(tsdata,  reg_addr.reg_threshold,  tsdata->threshold);
-	edt_ft5x06_register_write(tsdata,  reg_addr.reg_gain,       tsdata->gain);
-	edt_ft5x06_register_write(tsdata,  reg_addr.reg_offset,     tsdata->offset);
+	if ( tsdata->version == FT5316DME)
+    {
+        edt_ft5x06_register_write(tsdata,  0, 0x40);    // Set to Test-Mode
+        edt_ft5x06_register_write(tsdata,  reg_addr.reg_gain,       tsdata->gain);
+        mdelay(FT5316DME_SWITCH_MODE_DELAY);
+        edt_ft5x06_register_write(tsdata,  0, 0x00);    // Set to Operating-Mode
+    }else
+    {
+    	edt_ft5x06_register_write(tsdata,  reg_addr.reg_threshold,  tsdata->threshold);
+        edt_ft5x06_register_write(tsdata,  reg_addr.reg_gain,       tsdata->gain);
+    	edt_ft5x06_register_write(tsdata,  reg_addr.reg_offset,     tsdata->offset);
+    }
 	if (reg_addr.reg_report_rate)
 	  edt_ft5x06_register_write(tsdata,reg_addr.reg_report_rate,tsdata->report_rate);
 
@@ -928,7 +974,10 @@ static int edt_ft5x06_ts_identify(struct i2c_client *client,
 	} else 
 	{
 		/*since there are only two versions around… (M06, M09) */
-		tsdata->version = M09;
+		if (tsdata->alternate_version == FT5316DME)
+            tsdata->version = FT5316DME;    // AZ-Display touch enumerates as M09. Differentiate for Gain-setting
+        else
+            tsdata->version = M09;
 
 		error = edt_ft5x06_ts_readwrite(client, 1, "\xA6", 2, rdbuf);
 
@@ -974,9 +1023,22 @@ static void edt_ft5x06_ts_get_dt_defaults(struct device_node *np,
 {
 	struct edt_reg_addr *reg_addr = &tsdata->reg_addr;
 
-	EDT_GET_PROP(threshold, reg_addr->reg_threshold);
-	EDT_GET_PROP(gain, reg_addr->reg_gain);
-	EDT_GET_PROP(offset, reg_addr->reg_offset);
+    if ( tsdata->version == FT5316DME)
+    {
+    	u32 val;						\
+	    if (of_property_read_u32(np, "gain", &val) == 0)
+        {
+            edt_ft5x06_register_write(tsdata,  0, 0x40);    // Set to Test-Mode
+		    edt_ft5x06_register_write(tsdata, reg_addr->reg_gain, val);
+            mdelay(FT5316DME_SWITCH_MODE_DELAY);
+            edt_ft5x06_register_write(tsdata,  0, 0x00);    // Set to Operating-Mode
+        }
+    }else
+    {   
+        EDT_GET_PROP(threshold, reg_addr->reg_threshold);
+	    EDT_GET_PROP(gain, reg_addr->reg_gain);
+	    EDT_GET_PROP(offset, reg_addr->reg_offset);
+    }
 }
 
 static void
@@ -1003,8 +1065,19 @@ edt_ft5x06_ts_get_parameters(struct edt_ft5x06_ts_data *tsdata)
 
 	tsdata->threshold = edt_ft5x06_register_read(tsdata,
 						     reg_addr->reg_threshold);
-	tsdata->gain = edt_ft5x06_register_read(tsdata, reg_addr->reg_gain);
-	tsdata->offset = edt_ft5x06_register_read(tsdata, reg_addr->reg_offset);
+	
+    if ( tsdata->version == FT5316DME)
+    {
+        edt_ft5x06_register_write(tsdata,  0, 0x40);    // Set to Test-Mode
+        tsdata->gain = edt_ft5x06_register_read(tsdata, reg_addr->reg_gain);
+        mdelay(FT5316DME_SWITCH_MODE_DELAY);
+        edt_ft5x06_register_write(tsdata,  0, 0x00);    // Set to Operating-Mode
+    }else
+    {
+        tsdata->gain = edt_ft5x06_register_read(tsdata, reg_addr->reg_gain);
+    }
+	
+    tsdata->offset = edt_ft5x06_register_read(tsdata, reg_addr->reg_offset);
 	if (reg_addr->reg_report_rate != NO_REGISTER)
 		tsdata->report_rate = edt_ft5x06_register_read(tsdata,
 						reg_addr->reg_report_rate);
@@ -1033,6 +1106,14 @@ static void edt_ft5x06_ts_set_regs(struct edt_ft5x06_ts_data *tsdata)
 			reg_addr->reg_num_x       = M09_REGISTER_NUM_X;
 			reg_addr->reg_num_y       = M09_REGISTER_NUM_Y;
 			break;
+        case FT5316DME:
+			reg_addr->reg_threshold   = M09_REGISTER_THRESHOLD;
+			reg_addr->reg_report_rate = M09_REGISTER_REPORT_RATE;
+			reg_addr->reg_gain        = FT5316DME_REGISTER_GAIN;
+			reg_addr->reg_offset      = M09_REGISTER_OFFSET;
+			reg_addr->reg_num_x       = M09_REGISTER_NUM_X;
+			reg_addr->reg_num_y       = M09_REGISTER_NUM_Y;
+            break;
 		default:
 			/*just in case…*/
 			reg_addr->reg_threshold = 0;
@@ -1063,6 +1144,8 @@ static int edt_ft5x06_i2c_ts_probe_dt(struct device *dev,
 	tsdata->swapxy    = 0;
 	tsdata->prop_num_x= 0;
 	tsdata->prop_num_y= 0;	
+	tsdata->prop_xres = 0;
+	tsdata->prop_yres = 0;	
 	
 	prop = of_get_property(np,    "swapxy", NULL);
 	if (prop && (strcmp(prop,     "true")==0))		tsdata->swapxy |= EDT_SWAPXY;	  
@@ -1076,14 +1159,18 @@ static int edt_ft5x06_i2c_ts_probe_dt(struct device *dev,
 	if (!of_property_read_u32(np, "num_x",&val))	        tsdata->prop_num_x = val;
 	if (!of_property_read_u32(np, "num_y",&val))	        tsdata->prop_num_y = val;
 
+	if (!of_property_read_u32(np, "xres",&val))	        tsdata->prop_xres = val;
+	if (!of_property_read_u32(np, "yres",&val))	        tsdata->prop_yres = val;
+
 	prop = of_get_property(np,    "enable_wakeup", NULL);
 	if (prop && (strcmp(prop,     "true")==0))		tsdata->enable_wakeup = 1;
 	else		                                        tsdata->enable_wakeup = 0;
 
 
-	printk( KERN_ERR "EDT Devtree: swapxy=0x%x num_x=%d, num_y=%d enable_wakeup=%d irq_pin=0x%x reset_pin=0x%x, wake_pin=0x%x\n",
+	printk("EDT Devtree: swapxy=0x%x num_x=%d, num_y=%d enable_wakeup=%d irq_pin=0x%x reset_pin=0x%x, wake_pin=0x%x\n",
 		tsdata->swapxy, tsdata->prop_num_x, tsdata->prop_num_y, tsdata->enable_wakeup, tsdata->irq_pin, tsdata->reset_pin, tsdata->wake_pin);
-
+	printk("EDT Devtree: %dx%d ", tsdata->prop_xres, tsdata->prop_yres);
+	
 	return 0;
 }
 #else
@@ -1095,12 +1182,14 @@ static inline int edt_ft5x06_i2c_ts_probe_dt(struct device *dev,
 #endif
 
 void StopWm9715TouchDriver(void);
+static const struct of_device_id edt_ft5x06_of_match[];
 
 static int edt_ft5x06_ts_probe(struct i2c_client *client,
 					 const struct i2c_device_id *id)
 {
 	const struct edt_ft5x06_platform_data *pdata =
 						dev_get_platdata(&client->dev);
+    const struct of_device_id *match;
 	struct edt_ft5x06_ts_data *tsdata;
 	struct input_dev *input;
 	int error;
@@ -1113,6 +1202,15 @@ static int edt_ft5x06_ts_probe(struct i2c_client *client,
 		dev_err(&client->dev, "failed to allocate driver data.\n");
 		return -ENOMEM;
 	}
+
+    match = i2c_of_match_device(edt_ft5x06_of_match, client);
+    if ( match)
+    {
+        if ( 0 == strcmp( match->compatible, "edt,edt-ft5316"))
+        {
+            tsdata->alternate_version = FT5316DME;
+        }          
+    }
 
 	if (!pdata) {
 		error = edt_ft5x06_i2c_ts_probe_dt(&client->dev, tsdata);
@@ -1224,8 +1322,10 @@ static int edt_ft5x06_ts_probe(struct i2c_client *client,
 	__set_bit(BTN_TOUCH, input->keybit);
 	__set_bit(KEY_POWER, input->keybit);
 
-	if( tsdata->num_x != 0) maxx=tsdata->num_x * 64 - 1;
-	if( tsdata->num_y != 0) maxy=tsdata->num_y * 64 - 1;	    
+	if( tsdata->num_x != 0)     maxx=tsdata->num_x * 64 - 1;
+	if( tsdata->num_y != 0)     maxy=tsdata->num_y * 64 - 1;	    
+	if( tsdata->prop_xres != 0) maxx=tsdata->prop_xres - 1;
+	if( tsdata->prop_yres != 0) maxy=tsdata->prop_yres - 1;	    
 
 	printk( KERN_ERR "EDT register Touch ABS_X %d ABS_Y %d,%dPoints\n",
 		maxx,maxy,MAX_SUPPORT_POINTS);	
@@ -1337,6 +1437,7 @@ MODULE_DEVICE_TABLE(i2c, edt_ft5x06_ts_id);
 static const struct of_device_id edt_ft5x06_of_match[] = {
 	{ .compatible = "edt,edt-ft5206", },
 	{ .compatible = "edt,edt-ft5306", },
+	{ .compatible = "edt,edt-ft5316", },
 	{ .compatible = "edt,edt-ft5406", },
 	{ /* sentinel */ }
 };
