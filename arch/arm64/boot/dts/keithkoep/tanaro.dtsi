@@ -330,6 +330,7 @@ Switches:
 };
 
 &usdhc1 {   /* eMMC */
+	assigned-clock-rates = <200000000>;
 	pinctrl-names = "default", "state_100mhz", "state_200mhz";
 	pinctrl-0 = <&pinctrl_usdhc1>, <&pinctrl_usdhc1_gpio>;
 	pinctrl-1 = <&pinctrl_usdhc1_100mhz>, <&pinctrl_usdhc1_gpio>;
@@ -346,12 +347,12 @@ Switches:
 	pinctrl-1 = <&pinctrl_usdhc2_100mhz>, <&pinctrl_usdhc2_gpio>;
 	pinctrl-2 = <&pinctrl_usdhc2_200mhz>, <&pinctrl_usdhc2_gpio>;
 	cd-gpios = <&gpio2 12 GPIO_ACTIVE_LOW>;
-    wp-gpios = <&gpio2 20 GPIO_ACTIVE_HIGH>;
+	wp-gpios = <&gpio2 20 GPIO_ACTIVE_HIGH>;
 	bus-width = <4>;
 	vmmc-supply = <&reg_usdhc2_vmmc>;
 	pm-ignore-notify;
 	keep-power-in-suspend;
-    vqmmc-supply = <&reg_usdhc2_vqmmc>;
+	vqmmc-supply = <&reg_usdhc2_vqmmc>;
 	status = "okay";
 };
 
