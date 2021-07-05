@@ -76,4 +76,9 @@ config LOGO_SUB_CLUT224
 	bool "224-color S&B Linux logo"
 	default n
 
+config LOGO_GF_FNGSYSTEM_CLUT224
+	bool "224-color Garz&Fricke FNG System Logo"
+	depends on LOGO
+	default n
+
 endif # LOGO
