@@ -35,7 +35,7 @@
 #define touch_int_pin       4
 #define TOUCH_RESET                                         MX8MM_IOMUXC_GPIO1_IO00_GPIO1_IO0
 #define touch_reset         &gpio1 0
-#define DISPLAY_ENABLE                                      0x03C 0x2A4 0x000 0x0 0x0
+#define DISPLAY_ENABLE                                      MX8MM_IOMUXC_GPIO1_IO05_GPIO1_IO5
 #define display_enable      &gpio1 5
 #define CAMERA_PWDN                                         0x034 0x29C 0x000 0x0 0x0
 #define camera_pwdn         &gpio1 3

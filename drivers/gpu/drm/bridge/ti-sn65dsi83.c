@@ -244,8 +244,8 @@ static struct sn65dsi83 *bridge_to_sn65dsi83(struct drm_bridge *bridge)
 	return container_of(bridge, struct sn65dsi83, bridge);
 }
 
-static int sn65dsi83_attach(struct drm_bridge *bridge,
-			    enum drm_bridge_attach_flags flags)
+static int sn65dsi83_attach(struct drm_bridge *bridge)
+//			    enum drm_bridge_attach_flags flags)
 {
 	struct sn65dsi83 *ctx = bridge_to_sn65dsi83(bridge);
 	struct device *dev = ctx->dev;
@@ -267,8 +267,11 @@ static int sn65dsi83_attach(struct drm_bridge *bridge,
 
 	dsi = mipi_dsi_device_register_full(host, &info);
 	if (IS_ERR(dsi)) {
-		return dev_err_probe(dev, PTR_ERR(dsi),
-				     "failed to create dsi device\n");
+		if(PTR_ERR(dsi) != EPROBE_DEFER)
+			dev_err(dev, "failed to create dsi device\n");
+		return PTR_ERR(dsi);
+//		return dev_err_probe(dev, PTR_ERR(dsi),
+//				     "failed to create dsi device\n");
 	}
 
 	ctx->dsi = dsi;
@@ -284,7 +287,7 @@ static int sn65dsi83_attach(struct drm_bridge *bridge,
 	}
 
 	return drm_bridge_attach(bridge->encoder, ctx->panel_bridge,
-				 &ctx->bridge, flags);
+				 &ctx->bridge);
 
 err_dsi_attach:
 	mipi_dsi_device_unregister(dsi);
@@ -491,7 +494,6 @@ static void sn65dsi83_post_disable(struct drm_bridge *bridge)
 
 static enum drm_mode_status
 sn65dsi83_mode_valid(struct drm_bridge *bridge,
-		     const struct drm_display_info *info,
 		     const struct drm_display_mode *mode)
 {
 	/* LVDS output clock range 25..154 MHz */
@@ -545,9 +547,15 @@ static bool sn65dsi83_mode_fixup(struct drm_bridge *bridge,
 			 */
 			ctx->lvds_format_24bpp = true;
 			ctx->lvds_format_jeida = false;
+			/*
+			 * Do not warn here to remove clutter
+			 * The code is being refactored anyway. See https://lore.kernel.org/dri-devel/20210621125518.13715-1-laurent.pinchart@ideasonboard.com/
+			 */
+			/*
 			dev_warn(ctx->dev,
 				 "Unsupported LVDS bus format 0x%04x, please check output bridge driver. Falling back to SPWG24.\n",
 				 connector->display_info.bus_formats[0]);
+			*/
 			break;
 		}
 
@@ -593,9 +601,14 @@ static int sn65dsi83_parse_dt(struct sn65dsi83 *ctx, enum sn65dsi83_model model)
 		struct device_node *port2, *port3;
 		int dual_link;
 
+#define		DRM_LVDS_DUAL_LINK_EVEN_ODD_PIXELS 0
+#define		DRM_LVDS_DUAL_LINK_ODD_EVEN_PIXELS 1
+
 		port2 = of_graph_get_port_by_id(dev->of_node, 2);
 		port3 = of_graph_get_port_by_id(dev->of_node, 3);
-		dual_link = drm_of_lvds_get_dual_link_pixel_order(port2, port3);
+		//dual_link = drm_of_lvds_get_dual_link_pixel_order(port2, port3);
+		//assume odd/even for now
+		dual_link = DRM_LVDS_DUAL_LINK_ODD_EVEN_PIXELS;
 		of_node_put(port2);
 		of_node_put(port3);
 
@@ -614,7 +627,7 @@ static int sn65dsi83_parse_dt(struct sn65dsi83 *ctx, enum sn65dsi83_model model)
 	if (ret < 0)
 		return ret;
 	if (panel) {
-		panel_bridge = devm_drm_panel_bridge_add(dev, panel);
+		panel_bridge = devm_drm_panel_bridge_add(dev, panel, DRM_MODE_CONNECTOR_LVDS);
 		if (IS_ERR(panel_bridge))
 			return PTR_ERR(panel_bridge);
 	}
@@ -648,7 +661,7 @@ static int sn65dsi83_probe(struct i2c_client *client,
 	ctx->enable_gpio = devm_gpiod_get(ctx->dev, "enable", GPIOD_OUT_LOW);
 	if (IS_ERR(ctx->enable_gpio))
 		return PTR_ERR(ctx->enable_gpio);
-
+	
 	ret = sn65dsi83_parse_dt(ctx, model);
 	if (ret)
 		return ret;

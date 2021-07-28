@@ -197,14 +197,15 @@ Switches:
 
 &pwm1 {
 	pinctrl-names = "default";
-    pinctrl-0 = <&pinctrl_backlight_pwm1>;	
+	pinctrl-0 = <&pinctrl_backlight_pwm1>;
 	status = "okay";
 };
 
 &backlight1 {
 	status = "okay";
+	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_backlight_enable>;
-	enable-gpios = <&gpio1 4 GPIO_ACTIVE_HIGH>;    
+	enable-gpios = <&gpio1 4 GPIO_ACTIVE_HIGH>;
 };
 
 &A53_0 {
@@ -476,13 +477,6 @@ Switches:
 	pinctrl-0 = <&pinctrl_i2c3>;
 	status = "okay";
 
-	sn65dsi84@2c {
-		status = "disabled";
-		compatible = "ti,sn65dsi84";
-		reg = <0x2c>;
-		enable-gpios =<&gpio1 5 GPIO_ACTIVE_HIGH>;
-	};
-
 	rtc@32 {
 		compatible = "epson,rx8803";
 		reg = <0x32>;
@@ -694,7 +688,7 @@ Switches:
 		fsl,pins = <
 			MX8MM_IOMUXC_I2C3_SCL_I2C3_SCL			0x400001c3
 			MX8MM_IOMUXC_I2C3_SDA_I2C3_SDA			0x400001c3
-            MX8MM_IOMUXC_GPIO1_IO05_GPIO1_IO5       0x00000016  /* LCD_EN/PFID14 */
+/*            MX8MM_IOMUXC_GPIO1_IO05_GPIO1_IO5       0x00000016  /* LCD_EN/PFID14 */
 		>;
 	};
 
