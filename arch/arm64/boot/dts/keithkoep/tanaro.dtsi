@@ -481,27 +481,28 @@ Switches:
 		compatible = "ti,sn65dsi84";
 		reg = <0x2c>;
 		enable-gpios =<&gpio1 5 GPIO_ACTIVE_HIGH>;
-	};        
+	};
 
 	rtc@32 {
 		compatible = "epson,rx8803";
 		reg = <0x32>;
 		trickle-diode-disable;
+		status = "okay";
 	};
  
-    tas2552: tas2552@40 {
-        #sound-dai-cells = <0>;
-	    compatible = "ti,tas2552";
-	    reg = <0x40>;
-	    vbat-supply = <&reg_board_5v>;
-	    iovdd-supply = <&buck4_reg>;
-	    avdd-supply = <&buck5_reg>;
-	    enable-gpio = <&gpio1 8 GPIO_ACTIVE_HIGH>;
-    };
+	tas2552: tas2552@40 {
+		#sound-dai-cells = <0>;
+		compatible = "ti,tas2552";
+		reg = <0x40>;
+		vbat-supply = <&reg_board_5v>;
+		iovdd-supply = <&buck4_reg>;
+		avdd-supply = <&buck5_reg>;
+		enable-gpio = <&gpio1 8 GPIO_ACTIVE_HIGH>;
+	};
 
 /*
-    TODO: find driver!
-    Secure Element A71ch at 0x48
+	TODO: find driver!
+	Secure Element A71ch at 0x48
 */
 
 	pmic@4b {
@@ -630,6 +631,7 @@ Switches:
 	rtc@51 {
 		compatible = "nxp,pcf8563";
 		reg = <0x51>;
+		status = "disabled";
 	};   
 };
 
