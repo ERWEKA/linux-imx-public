@@ -913,6 +913,10 @@ static int wm8983_set_bias_level(struct snd_soc_component *component,
 		snd_soc_component_update_bits(component, WM8983_POWER_MANAGEMENT_1,
 				    WM8983_VMIDSEL_MASK,
 				    1 << WM8983_VMIDSEL_SHIFT);	
+		// Microphone BIAS must be enabled too
+		snd_soc_component_update_bits(component, WM8983_POWER_MANAGEMENT_1,
+				    WM8983_MICBEN_MASK,
+				    WM8983_MICBEN);	
 		break;
 	case SND_SOC_BIAS_STANDBY:
 		if (snd_soc_component_get_bias_level(component) == SND_SOC_BIAS_OFF) {
