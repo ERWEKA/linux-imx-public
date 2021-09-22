@@ -173,7 +173,7 @@ static const char *adcleft_text[] = { "ADC-Left", "ADC-Right" };
 static SOC_ENUM_SINGLE_DECL(adcleft_sel_mode, WM8983_AUDIO_INTERFACE, 1, adcleft_text);
 
 static const char *dacleft_text[] = { "DAC-Left", "DAC-Right" };
-static SOC_ENUM_SINGLE_DECL(dacleft_sel_mode, WM8983_AUDIO_INTERFACE, 2, adcleft_text);
+static SOC_ENUM_SINGLE_DECL(dacleft_sel_mode, WM8983_AUDIO_INTERFACE, 2, dacleft_text);
 
 
 static const char *alc_sel_text[] = { "Off", "Right", "Left", "Stereo" };
