@@ -103,6 +103,7 @@ Defines:
 		dsi-lanes       = <4>;
 		panel-width-mm = <154>;
 		panel-height-mm = <86>;
+		backlight = <&backlight1>;
 
 		display-timings {
 			timing {

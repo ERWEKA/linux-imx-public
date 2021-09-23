@@ -77,6 +77,8 @@ Defines:
 		dsi-lanes       = <4>;
 		panel-width-mm  = <217>;
 		panel-height-mm = <136>;
+		backlight       = <&backlight1>;
+
 		port {
 			panel1_in: endpoint {
 				remote-endpoint = <&mipi_dsi_out>;

@@ -189,7 +189,7 @@
 		spdif-in;
 	};    
 
-	backlight: backlight {
+	backlight1: backlight {
 		compatible = "pwm-backlight";
 		pwms = <&pwm1 0 100000 0>;
 

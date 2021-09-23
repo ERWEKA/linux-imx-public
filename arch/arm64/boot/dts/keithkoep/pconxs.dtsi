@@ -167,7 +167,7 @@ Defines:
 	status = "okay";
 };
 
-&backlight {
+&backlight1 {
 	status = "okay";
 	pinctrl-0 = <&pinctrl_backlight_enable>;
 	enable-gpios = <spin73_gpio GPIO_ACTIVE_HIGH>;    

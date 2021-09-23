@@ -90,7 +90,8 @@ Defines:
 		panel-width-mm  = <154>;
 		panel-height-mm = <86>;
 		power           = <&reg_display_pwr>;
-
+		backlight = <&backlight1>;
+		
 		port@1 {
 			panel1_in: endpoint {
 				remote-endpoint = <&mipi_dsi_out>;

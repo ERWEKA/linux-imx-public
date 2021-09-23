@@ -96,7 +96,7 @@
 	status = "okay";
 };
 
-&backlight {
+&backlight1 {
 	status = "okay";
 };
 
